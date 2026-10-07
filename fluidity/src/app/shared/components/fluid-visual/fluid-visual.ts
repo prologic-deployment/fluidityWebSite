@@ -346,8 +346,9 @@ export class FluidVisual implements OnInit, OnDestroy {
     }
 
     // ---------------------------------------------------------------------------
-    // 4. The Cloud — breathing cumulus on the right (keeps the old core's colors:
-    //    teal solid masses + accent wireframe + teal halo)
+    // 4. The Cloud — flat-bottomed cumulus silhouette on the right: soft teal
+    //    fill, crisp accent outline, gentle halo. Reads as a cloud illustration
+    //    instead of wireframe spheres.
     // ---------------------------------------------------------------------------
     const coreGroup = new THREE.Group();
     coreGroup.position.set(6.2, 0, 0);
@@ -356,58 +357,77 @@ export class FluidVisual implements OnInit, OnDestroy {
     const cloudGroup = new THREE.Group();
     coreGroup.add(cloudGroup);
 
-    const puffGeometry = new THREE.SphereGeometry(1, 28, 20);
-    const puffMaterial = new THREE.MeshBasicMaterial({
+    const CLOUD_BASE_SCALE = 1.2;
+
+    // The silhouette is the upper envelope of overlapping circles whose centers
+    // all sit on the base line: each lobe is [x, radius]. Chaining arcs between
+    // the pairwise upper intersections yields a classic billowy cumulus with a
+    // perfectly flat bottom.
+    const baseY = -0.72;
+    const lobes: [number, number][] = [
+      [-1.55, 1.0],
+      [-0.4, 1.4],
+      [0.85, 1.1],
+      [1.8, 0.7],
+    ];
+    const upperIntersection = (a: [number, number], b: [number, number]): [number, number] => {
+      const dx = b[0] - a[0];
+      const d = Math.abs(dx);
+      const along = (d * d + a[1] * a[1] - b[1] * b[1]) / (2 * d);
+      const half = Math.sqrt(Math.max(a[1] * a[1] - along * along, 0));
+      return [a[0] + (dx >= 0 ? along : -along), baseY + half];
+    };
+    const joints: [number, number][] = [];
+    for (let i = 0; i < lobes.length - 1; i++) {
+      joints.push(upperIntersection(lobes[i], lobes[i + 1]));
+    }
+
+    const cloudShape = new THREE.Shape();
+    cloudShape.moveTo(lobes[0][0] - lobes[0][1], baseY);
+    for (let i = 0; i < lobes.length; i++) {
+      const [cx, r] = lobes[i];
+      const startAngle = i === 0 ? Math.PI : Math.atan2(joints[i - 1][1] - baseY, joints[i - 1][0] - cx);
+      const endAngle = i === lobes.length - 1 ? 0 : Math.atan2(joints[i][1] - baseY, joints[i][0] - cx);
+      cloudShape.absarc(cx, baseY, r, startAngle, endAngle, true);
+    }
+    cloudShape.closePath(); // flat base
+
+    const cloudGeometry = new THREE.ShapeGeometry(cloudShape, 24);
+    const cloudMaterial = new THREE.MeshBasicMaterial({
       color: teal,
       transparent: true,
-      opacity: 0.32,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.3,
+      blending: THREE.NormalBlending,
       depthWrite: false,
+      side: THREE.DoubleSide,
     });
-    const puffWireMaterial = new THREE.MeshBasicMaterial({
+    const cloudFill = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    cloudGroup.add(cloudFill);
+
+    const cloudOutlineGeometry = new THREE.BufferGeometry().setFromPoints(cloudShape.getPoints(16));
+    const cloudOutlineMaterial = new THREE.LineBasicMaterial({
       color: accent,
       transparent: true,
-      opacity: 0.22,
-      wireframe: true,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.65,
       depthWrite: false,
     });
-    disposables.push(puffGeometry, puffMaterial, puffWireMaterial);
-
-    // Classic cumulus silhouette: big center, shoulders, crest, drifting edges.
-    const puffs: { mesh: import('three').Mesh; radius: number; y: number; phase: number }[] = [];
-    const puffLayout: [number, number, number][] = [
-      [0, 0, 1.15], [-1.25, -0.2, 0.85], [1.3, -0.1, 0.95],
-      [-2.1, -0.5, 0.55], [2.2, -0.45, 0.5], [-0.15, 0.85, 0.8],
-      [0.95, 0.6, 0.55], [-0.5, -0.7, 0.6], [0.7, -0.65, 0.55],
-    ];
-    for (let i = 0; i < puffLayout.length; i++) {
-      const [x, y, r] = puffLayout[i];
-      const mesh = new THREE.Mesh(puffGeometry, puffMaterial);
-      mesh.position.set(x, y, 0);
-      mesh.scale.setScalar(r);
-      cloudGroup.add(mesh);
-      puffs.push({ mesh, radius: r, y, phase: (i / puffLayout.length) * Math.PI * 2 });
-      // Accent wireframe over the three main masses keeps the crystalline feel;
-      // parented to the puff so it tracks its breathing.
-      if (i < 3) {
-        const wire = new THREE.Mesh(puffGeometry, puffWireMaterial);
-        wire.scale.setScalar(1.22);
-        mesh.add(wire);
-      }
-    }
+    const cloudOutline = new THREE.LineLoop(cloudOutlineGeometry, cloudOutlineMaterial);
+    cloudOutline.position.z = 0.01;
+    cloudGroup.add(cloudOutline);
+    disposables.push(cloudGeometry, cloudMaterial, cloudOutlineGeometry, cloudOutlineMaterial);
 
     const haloTexture = makeGlowTexture();
     const coreHaloMaterial = new THREE.SpriteMaterial({
       map: haloTexture,
       color: teal,
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.14,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const coreHalo = new THREE.Sprite(coreHaloMaterial);
-    coreHalo.scale.set(8, 8, 1);
+    coreHalo.scale.set(5.2, 5.2, 1);
+    coreHalo.position.z = -0.4;
     coreGroup.add(coreHalo);
     disposables.push(haloTexture, coreHaloMaterial);
 
@@ -448,7 +468,7 @@ export class FluidVisual implements OnInit, OnDestroy {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
       const material = new THREE.LineBasicMaterial({
-        color: r % 2 === 0 ? 0x7c8cf0 : 0x2ed3b7,
+        color: r % 2 === 0 ? 0x00a583 : 0x2ed3b7,
         transparent: true,
         opacity: 0.14,
         blending: THREE.AdditiveBlending,
@@ -475,7 +495,7 @@ export class FluidVisual implements OnInit, OnDestroy {
     for (let i = 0; i < sparkCount; i++) {
       const material = new THREE.SpriteMaterial({
         map: sparkTexture,
-        color: i % 2 === 0 ? 0x8b9bf1 : 0x2ed3b7,
+        color: i % 2 === 0 ? 0xa2efd0 : 0x2ed3b7,
         transparent: true,
         opacity: 0,
         blending: THREE.AdditiveBlending,
@@ -576,14 +596,13 @@ export class FluidVisual implements OnInit, OnDestroy {
         streamAttributes[s].needsUpdate = true;
       }
 
-      // 4. Cloud: slow yaw drift, gentle bob, per-puff breathing.
-      cloudGroup.rotation.y = t * 0.1;
+      // 4. Cloud: gentle breathing scale, sway and bob — a flat silhouette, so
+      // yaw stays a small oscillation and never turns the shape edge-on.
+      const breathe = 1 + 0.03 * Math.sin(t * 0.9);
+      cloudGroup.scale.setScalar(CLOUD_BASE_SCALE * breathe);
+      cloudGroup.rotation.y = Math.sin(t * 0.23) * 0.16;
+      cloudGroup.rotation.z = Math.sin(t * 0.31) * 0.03;
       coreGroup.position.y = Math.sin(t * 0.6) * 0.25;
-      for (const puff of puffs) {
-        const breathe = 1 + 0.05 * Math.sin(t * 1.3 + puff.phase);
-        puff.mesh.scale.setScalar(puff.radius * breathe);
-        puff.mesh.position.y = puff.y + 0.08 * Math.sin(t * 0.8 + puff.phase);
-      }
 
       // 5. Shards orbit on tilted ellipses while tumbling.
       for (const shard of shards) {

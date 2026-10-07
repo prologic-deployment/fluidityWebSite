@@ -116,8 +116,11 @@
   color: transparent;
 }
 
+// Dark override uses background-image (NOT the background shorthand): the
+// shorthand would reset background-clip to border-box and paint a full-width
+// gradient bar instead of clipping the gradient to the glyphs.
 :host-context([data-theme='dark']) .line--grad {
-  background: linear-gradient(120deg, #0fa88a 0%, #2ed3b7 55%, #22d3ee 100%);
+  background-image: linear-gradient(120deg, #0fa88a 0%, #2ed3b7 55%, #22d3ee 100%);
 }
 
 .hero-sub {
