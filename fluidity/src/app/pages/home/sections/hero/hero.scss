@@ -98,17 +98,26 @@
   display: block;
 }
 
-// Slogan line colors echo the scene: neutral ink → chaos pink → flow gradient.
+// Slogan line colors suit the green brand: accent green mid-line, then a
+// brand-green → logo-mint → scene-cyan flow gradient on the closing line.
 .line--chaos {
-  color: #02BFA0;
+  color: #00a583;
 }
 
-:host-context([data-theme='light']) .line--chaos {
-  color: #02BFA0;
+:host-context([data-theme='dark']) .line--chaos {
+  color: #2ed3b7;
 }
 
 .line--grad {
-  @include text-gradient;
+  background: linear-gradient(120deg, #00856e 0%, #00c9a7 55%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+:host-context([data-theme='dark']) .line--grad {
+  background: linear-gradient(120deg, #0fa88a 0%, #2ed3b7 55%, #22d3ee 100%);
 }
 
 .hero-sub {

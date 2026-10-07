@@ -17,7 +17,7 @@ import { isIoHealthy } from '../../directives/reveal.directive';
  *
  * A metaphor for what Fluidity does: a turbulent, chaotic particle storm on
  * the left gets pulled through a pulsing gradient gate into calm laminar
- * streams that converge into a rotating crystalline core on the right.
+ * streams that converge into a living animated cloud on the right.
  */
 @Component({
   selector: 'app-fluid-visual',
@@ -346,36 +346,56 @@ export class FluidVisual implements OnInit, OnDestroy {
     }
 
     // ---------------------------------------------------------------------------
-    // 4. The Core — rotating crystalline structure on the right
+    // 4. The Cloud — breathing cumulus on the right (keeps the old core's colors:
+    //    teal solid masses + accent wireframe + teal halo)
     // ---------------------------------------------------------------------------
     const coreGroup = new THREE.Group();
     coreGroup.position.set(6.2, 0, 0);
     scene.add(coreGroup);
 
-    const coreKernelGeometry = new THREE.IcosahedronGeometry(1.05, 0);
-    const coreKernelMaterial = new THREE.MeshBasicMaterial({
+    const cloudGroup = new THREE.Group();
+    coreGroup.add(cloudGroup);
+
+    const puffGeometry = new THREE.SphereGeometry(1, 28, 20);
+    const puffMaterial = new THREE.MeshBasicMaterial({
       color: teal,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.32,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const coreKernel = new THREE.Mesh(coreKernelGeometry, coreKernelMaterial);
-    coreGroup.add(coreKernel);
-    disposables.push(coreKernelGeometry, coreKernelMaterial);
-
-    const coreShellGeometry = new THREE.IcosahedronGeometry(1.9, isLow ? 0 : 1);
-    const coreShellMaterial = new THREE.MeshBasicMaterial({
+    const puffWireMaterial = new THREE.MeshBasicMaterial({
       color: accent,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0.22,
       wireframe: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const coreShell = new THREE.Mesh(coreShellGeometry, coreShellMaterial);
-    coreGroup.add(coreShell);
-    disposables.push(coreShellGeometry, coreShellMaterial);
+    disposables.push(puffGeometry, puffMaterial, puffWireMaterial);
+
+    // Classic cumulus silhouette: big center, shoulders, crest, drifting edges.
+    const puffs: { mesh: import('three').Mesh; radius: number; y: number; phase: number }[] = [];
+    const puffLayout: [number, number, number][] = [
+      [0, 0, 1.15], [-1.25, -0.2, 0.85], [1.3, -0.1, 0.95],
+      [-2.1, -0.5, 0.55], [2.2, -0.45, 0.5], [-0.15, 0.85, 0.8],
+      [0.95, 0.6, 0.55], [-0.5, -0.7, 0.6], [0.7, -0.65, 0.55],
+    ];
+    for (let i = 0; i < puffLayout.length; i++) {
+      const [x, y, r] = puffLayout[i];
+      const mesh = new THREE.Mesh(puffGeometry, puffMaterial);
+      mesh.position.set(x, y, 0);
+      mesh.scale.setScalar(r);
+      cloudGroup.add(mesh);
+      puffs.push({ mesh, radius: r, y, phase: (i / puffLayout.length) * Math.PI * 2 });
+      // Accent wireframe over the three main masses keeps the crystalline feel;
+      // parented to the puff so it tracks its breathing.
+      if (i < 3) {
+        const wire = new THREE.Mesh(puffGeometry, puffWireMaterial);
+        wire.scale.setScalar(1.22);
+        mesh.add(wire);
+      }
+    }
 
     const haloTexture = makeGlowTexture();
     const coreHaloMaterial = new THREE.SpriteMaterial({
@@ -392,7 +412,7 @@ export class FluidVisual implements OnInit, OnDestroy {
     disposables.push(haloTexture, coreHaloMaterial);
 
     // ---------------------------------------------------------------------------
-    // 5. Glass shards orbiting the core
+    // 5. Glass shards orbiting the cloud
     // ---------------------------------------------------------------------------
     const shards: { mesh: import('three').Mesh; radius: number; speed: number; phase: number; tilt: number; spin: number }[] = [];
     const blue = new THREE.Color('#2ed3b7');
@@ -556,13 +576,14 @@ export class FluidVisual implements OnInit, OnDestroy {
         streamAttributes[s].needsUpdate = true;
       }
 
-      // 4. Core: kernel breathes, shell counter-rotates.
-      coreKernel.rotation.y = t * 0.4;
-      coreKernel.rotation.x = t * 0.23;
-      coreKernel.scale.setScalar(1 + 0.06 * Math.sin(t * 2.1));
-      coreShell.rotation.y = -t * 0.15;
-      coreShell.rotation.z = t * 0.09;
-      coreShell.scale.setScalar(1 + 0.03 * Math.sin(t * 1.3));
+      // 4. Cloud: slow yaw drift, gentle bob, per-puff breathing.
+      cloudGroup.rotation.y = t * 0.1;
+      coreGroup.position.y = Math.sin(t * 0.6) * 0.25;
+      for (const puff of puffs) {
+        const breathe = 1 + 0.05 * Math.sin(t * 1.3 + puff.phase);
+        puff.mesh.scale.setScalar(puff.radius * breathe);
+        puff.mesh.position.y = puff.y + 0.08 * Math.sin(t * 0.8 + puff.phase);
+      }
 
       // 5. Shards orbit on tilted ellipses while tumbling.
       for (const shard of shards) {

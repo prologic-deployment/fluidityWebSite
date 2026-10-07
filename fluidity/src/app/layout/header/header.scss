@@ -66,10 +66,20 @@
   display: block;
 }
 
-// Official logo artwork is dark navy — recolor to white on dark backgrounds.
-html[data-theme='dark'] .brand-logo,
-:host-context([data-theme='dark']) .brand-logo {
-  filter: brightness(0) invert(1);
+// 2026 kit ships a dedicated fond-sombre lockup (white wordmark + mint mark);
+// swap it in on dark backgrounds instead of recoloring the color logo.
+.brand-logo--dark {
+  display: none;
+}
+
+html[data-theme='dark'] .brand-logo:not(.brand-logo--dark),
+:host-context([data-theme='dark']) .brand-logo:not(.brand-logo--dark) {
+  display: none;
+}
+
+html[data-theme='dark'] .brand-logo--dark,
+:host-context([data-theme='dark']) .brand-logo--dark {
+  display: block;
 }
 
 .brand-name {
