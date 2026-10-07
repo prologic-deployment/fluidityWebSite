@@ -92,7 +92,7 @@ const EMBED_TPL =
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(180deg, rgb(90 110 232 / 0.08), transparent 35%);
+      background: linear-gradient(180deg, rgb(0 133 110 / 0.08), transparent 35%);
     }
 
     .map-fallback {

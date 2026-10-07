@@ -66,7 +66,7 @@ import { isIoHealthy } from '../../directives/reveal.directive';
     .fb-orb--a {
       width: 55%;
       aspect-ratio: 1;
-      background: radial-gradient(circle, rgb(102 126 234 / 0.5), transparent 70%);
+      background: radial-gradient(circle, rgb(0 133 110 / 0.5), transparent 70%);
       top: 10%;
       left: 15%;
       animation: fb-drift 12s ease-in-out infinite alternate;
@@ -84,7 +84,7 @@ import { isIoHealthy } from '../../directives/reveal.directive';
     .fb-orb--c {
       width: 30%;
       aspect-ratio: 1;
-      background: radial-gradient(circle, rgb(102 126 234 / 0.3), transparent 70%);
+      background: radial-gradient(circle, rgb(0 133 110 / 0.3), transparent 70%);
       top: 35%;
       right: 30%;
       animation: fb-drift 20s ease-in-out infinite alternate;
@@ -209,7 +209,7 @@ export class FluidVisual implements OnInit, OnDestroy {
     const shardCount = isLow ? 14 : 24;
     const sparkCount = isLow ? 26 : 60;
 
-    const accent = new THREE.Color('#667eea');
+    const accent = new THREE.Color('#00a583');
     const teal = new THREE.Color('#00c9a7');
     const pink = new THREE.Color('#e879f9');
 
@@ -395,7 +395,7 @@ export class FluidVisual implements OnInit, OnDestroy {
     // 5. Glass shards orbiting the core
     // ---------------------------------------------------------------------------
     const shards: { mesh: import('three').Mesh; radius: number; speed: number; phase: number; tilt: number; spin: number }[] = [];
-    const blue = new THREE.Color('#8b9bf1');
+    const blue = new THREE.Color('#2ed3b7');
     for (let i = 0; i < shardCount; i++) {
       const size = 0.12 + Math.random() * 0.2;
       const geometry = new THREE.TetrahedronGeometry(size);

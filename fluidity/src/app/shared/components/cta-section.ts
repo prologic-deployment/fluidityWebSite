@@ -49,7 +49,7 @@ import { RevealDirective } from '../directives/reveal.directive';
     .orb--a {
       top: -12rem;
       inset-inline-start: -8rem;
-      background: radial-gradient(circle, rgb(102 126 234 / 0.45), transparent 65%);
+      background: radial-gradient(circle, rgb(0 133 110 / 0.45), transparent 65%);
       animation: drift 14s ease-in-out infinite alternate;
     }
 

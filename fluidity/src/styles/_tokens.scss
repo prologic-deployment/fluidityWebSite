@@ -5,7 +5,7 @@
 // --- Brand palette -----------------------------------------------------------
 $brand-ink: #0b1020;
 $brand-ink-soft: #111827;
-$brand-indigo: #667eea;
+$brand-green: #00a583;
 $brand-teal: #00c9a7;
 
 // --- Typography --------------------------------------------------------------
@@ -47,7 +47,7 @@ $radius-full: 999px;
 $shadow-sm: 0 1px 2px rgb(11 16 32 / 0.05), 0 1px 3px rgb(11 16 32 / 0.06);
 $shadow-md: 0 4px 12px rgb(11 16 32 / 0.08), 0 2px 4px rgb(11 16 32 / 0.05);
 $shadow-lg: 0 12px 32px rgb(11 16 32 / 0.14), 0 4px 12px rgb(11 16 32 / 0.08);
-$shadow-glow-indigo: 0 8px 40px -8px rgb(102 126 234 / 0.45);
+$shadow-glow-green: 0 8px 40px -8px rgb(0 201 167 / 0.45);
 $shadow-glow-teal: 0 8px 40px -8px rgb(0 201 167 / 0.4);
 
 // --- Z-index scale -----------------------------------------------------------
@@ -86,7 +86,7 @@ $bp-xl: 80em; // 1280px
   // Borders
   --border: rgb(11 16 32 / 0.1);
   --border-strong: rgb(11 16 32 / 0.18);
-  --border-accent: rgb(102 126 234 / 0.35);
+  --border-accent: rgb(0 133 110 / 0.35);
 
   // Text
   --text-1: #0b1020;
@@ -95,15 +95,15 @@ $bp-xl: 80em; // 1280px
   --text-invert: #ffffff;
 
   // Brand
-  --accent: #5a6ee8;
-  --accent-strong: #4c5fe0;
-  --accent-soft: rgb(102 126 234 / 0.12);
-  --accent-soft-2: rgb(102 126 234 / 0.08);
+  --accent: #00856e;
+  --accent-strong: #006e5a;
+  --accent-soft: rgb(0 133 110 / 0.12);
+  --accent-soft-2: rgb(0 133 110 / 0.08);
   --teal: #08a98c;
   --teal-soft: rgb(8 169 140 / 0.12);
-  --grad-accent: linear-gradient(120deg, #5a6ee8, #7c8cf0);
-  --grad-brand: linear-gradient(120deg, #5a6ee8 0%, #08a98c 100%);
-  --grad-brand-vivid: linear-gradient(120deg, #667eea 0%, #00c9a7 100%);
+  --grad-accent: linear-gradient(120deg, #00856e, #00a583);
+  --grad-brand: linear-gradient(120deg, #00856e 0%, #00c9a7 100%);
+  --grad-brand-vivid: linear-gradient(120deg, #00a583 0%, #00c9a7 100%);
 
   // States
   --danger: #d92d20;
@@ -117,7 +117,7 @@ $bp-xl: 80em; // 1280px
   --shadow-1: #{$shadow-sm};
   --shadow-2: #{$shadow-md};
   --shadow-3: #{$shadow-lg};
-  --glow: #{$shadow-glow-indigo};
+  --glow: #{$shadow-glow-green};
 }
 
 @mixin theme-tokens-dark {
@@ -133,7 +133,7 @@ $bp-xl: 80em; // 1280px
   // Borders
   --border: rgb(255 255 255 / 0.09);
   --border-strong: rgb(255 255 255 / 0.16);
-  --border-accent: rgb(102 126 234 / 0.4);
+  --border-accent: rgb(0 201 167 / 0.4);
 
   // Text
   --text-1: #f2f4fb;
@@ -142,15 +142,15 @@ $bp-xl: 80em; // 1280px
   --text-invert: #0b1020;
 
   // Brand
-  --accent: #8b9bf1;
-  --accent-strong: #a5b2f4;
-  --accent-soft: rgb(139 155 241 / 0.14);
-  --accent-soft-2: rgb(139 155 241 / 0.08);
+  --accent: #2ed3b7;
+  --accent-strong: #5ce0c9;
+  --accent-soft: rgb(46 211 183 / 0.14);
+  --accent-soft-2: rgb(46 211 183 / 0.08);
   --teal: #2ed3b7;
   --teal-soft: rgb(46 211 183 / 0.12);
-  --grad-accent: linear-gradient(120deg, #667eea, #8b9bf1);
-  --grad-brand: linear-gradient(120deg, #667eea 0%, #2ed3b7 100%);
-  --grad-brand-vivid: linear-gradient(120deg, #667eea 0%, #00c9a7 100%);
+  --grad-accent: linear-gradient(120deg, #0fa88a, #2ed3b7);
+  --grad-brand: linear-gradient(120deg, #0fa88a 0%, #2ed3b7 100%);
+  --grad-brand-vivid: linear-gradient(120deg, #0fa88a 0%, #00c9a7 100%);
 
   // States
   --danger: #f97066;
@@ -164,7 +164,7 @@ $bp-xl: 80em; // 1280px
   --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-2: 0 4px 12px rgb(0 0 0 / 0.45);
   --shadow-3: 0 12px 32px rgb(0 0 0 / 0.55);
-  --glow: 0 8px 40px -8px rgb(102 126 234 / 0.5);
+  --glow: 0 8px 40px -8px rgb(0 201 167 / 0.5);
 }
 
 // ============================================================================

@@ -222,7 +222,7 @@ const RING_C = 2 * Math.PI * RING_R;
       background: var(--grad-brand);
       border-color: transparent;
       color: #fff;
-      box-shadow: 0 10px 24px -10px rgb(90 110 232 / 0.65);
+      box-shadow: 0 10px 24px -10px rgb(0 133 110 / 0.65);
       transform: translateY(-3px) scale(1.08);
     }
 

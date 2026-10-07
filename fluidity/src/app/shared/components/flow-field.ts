@@ -10,7 +10,7 @@ import {
 /**
  * "Flow field" — the home page's living background, inspired by a reference
  * video of organic glowing drifts over near-black (analyzed in
- * scripts/analyze-video.mjs). Translated to Fluidity's palette: brand blue /
+ * scripts/analyze-video.mjs). Translated to Fluidity's palette: brand green /
  * cyan glow blobs drifting like fluid, twinkling particles, slow ribbon
  * waves, periodic brand-gradient "blooms" and a rare Tunisian-red spark.
  *
@@ -59,9 +59,9 @@ interface Bloom {
   color: [number, number, number];
 }
 
-const BLUE: [number, number, number] = [100, 120, 255];
+const GREEN: [number, number, number] = [0, 165, 131];
 const CYAN: [number, number, number] = [34, 211, 238];
-const VIOLET: [number, number, number] = [96, 70, 230];
+const EMERALD: [number, number, number] = [0, 133, 110];
 const RED: [number, number, number] = [231, 0, 19];
 const BLOOM_PERIOD = 7000;
 const BLOOM_LIFE = 2600;
@@ -192,7 +192,7 @@ export class FlowField implements OnDestroy {
     const blobCount = Math.max(5, Math.round(8 * Math.min(area, 1.5)));
     const particleCount = Math.max(26, Math.round(52 * Math.min(area, 1.5)));
 
-    const blobColors: Array<[number, number, number]> = [BLUE, BLUE, CYAN, CYAN, VIOLET, BLUE, RED];
+    const blobColors: Array<[number, number, number]> = [GREEN, GREEN, CYAN, CYAN, EMERALD, GREEN, RED];
     this.blobs = Array.from({ length: blobCount }, (_, i) => ({
       x: Math.random() * this.width,
       y: Math.random() * this.height,
@@ -211,22 +211,22 @@ export class FlowField implements OnDestroy {
       r: 0.8 + Math.random() * 1.5,
       vx: (Math.random() - 0.5) * 26,
       vy: (Math.random() - 0.5) * 18,
-      color: Math.random() < 0.75 ? BLUE : CYAN,
+      color: Math.random() < 0.75 ? GREEN : CYAN,
       baseAlpha: 0.25 + Math.random() * 0.5,
       freq: 0.4 + Math.random() * 1.4,
       phase: Math.random() * Math.PI * 2,
     }));
 
     this.ribbons = [
-      { yBase: 0.28, amp: 26, wavelength: 520, speed: 0.12, phase: 0, color: BLUE, alpha: 0.10 },
+      { yBase: 0.28, amp: 26, wavelength: 520, speed: 0.12, phase: 0, color: GREEN, alpha: 0.10 },
       { yBase: 0.55, amp: 34, wavelength: 680, speed: 0.09, phase: 2.1, color: CYAN, alpha: 0.08 },
-      { yBase: 0.78, amp: 22, wavelength: 440, speed: 0.15, phase: 4.4, color: VIOLET, alpha: 0.07 },
+      { yBase: 0.78, amp: 22, wavelength: 440, speed: 0.15, phase: 4.4, color: EMERALD, alpha: 0.07 },
     ];
 
     if (staticScene) {
       // Give the static frame a couple of settled blooms so it isn't empty.
       this.blooms = [
-        { x: this.width * 0.3, y: this.height * 0.35, startedAt: 0, color: BLUE },
+        { x: this.width * 0.3, y: this.height * 0.35, startedAt: 0, color: GREEN },
         { x: this.width * 0.72, y: this.height * 0.62, startedAt: -900, color: CYAN },
       ];
     }
@@ -273,7 +273,7 @@ export class FlowField implements OnDestroy {
     if (t - this.lastBloom > BLOOM_PERIOD && this.blobs.length) {
       this.lastBloom = t;
       const host = this.blobs[Math.floor(Math.random() * this.blobs.length)];
-      const color = Math.random() < 0.12 ? RED : Math.random() < 0.5 ? BLUE : CYAN;
+      const color = Math.random() < 0.12 ? RED : Math.random() < 0.5 ? GREEN : CYAN;
       this.blooms.push({ x: host.x, y: host.y, startedAt: t, color });
     }
   }

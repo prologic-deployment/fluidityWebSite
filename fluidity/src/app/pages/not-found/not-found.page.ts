@@ -36,7 +36,7 @@ import { RevealDirective } from '../../shared/directives/reveal.directive';
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(55% 65% at 25% 30%, rgb(102 126 234 / 0.16), transparent 70%),
+        radial-gradient(55% 65% at 25% 30%, rgb(0 133 110 / 0.16), transparent 70%),
         radial-gradient(45% 55% at 75% 70%, rgb(0 201 167 / 0.12), transparent 70%),
         var(--bg);
     }

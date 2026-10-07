@@ -201,7 +201,7 @@ const OPACITIES = [1, 0.5, 0.22, 0] as const;
       flex-direction: column;
       overflow: hidden;
       @include card;
-      box-shadow: 0 18px 40px -18px rgb(90 110 232 / 0.35);
+      box-shadow: 0 18px 40px -18px rgb(0 133 110 / 0.35);
       transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
       will-change: transform, opacity;
       cursor: pointer;
