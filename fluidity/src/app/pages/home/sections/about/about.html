@@ -1,0 +1,43 @@
+<section class="about section" id="a-propos">
+  <div class="container">
+    <div class="split">
+      <div class="statement" appReveal>
+        <p class="eyebrow">{{ i18n.t('home.about.eyebrow') }}</p>
+        <h2 class="statement-title">{{ i18n.t('home.about.statement') }}</h2>
+      </div>
+      <div class="support" appReveal [appRevealDelay]="120">
+        <p>{{ i18n.t('home.about.text1') }}</p>
+        <p>{{ i18n.t('home.about.text2') }}</p>
+        <div class="mv">
+          <div class="mv-card">
+            <h3>{{ i18n.t('home.about.missionTitle') }}</h3>
+            <p>{{ i18n.t('home.about.mission') }}</p>
+          </div>
+          <div class="mv-card">
+            <h3>{{ i18n.t('home.about.visionTitle') }}</h3>
+            <p>{{ i18n.t('home.about.vision') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="values">
+      <app-section-heading
+        [eyebrow]="i18n.t('home.about.valuesEyebrow')"
+        [title]="i18n.t('home.about.valuesTitle')"
+        align="center"
+      />
+      <div class="values-grid">
+        @for (value of values(); track value.id; let i = $index) {
+          <article class="value-card" appReveal [appRevealDelay]="i * 80">
+            <div class="value-icon">
+              <app-icon [name]="value.icon" />
+            </div>
+            <h3>{{ value.title }}</h3>
+            <p>{{ value.description }}</p>
+          </article>
+        }
+      </div>
+    </div>
+  </div>
+</section>

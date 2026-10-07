@@ -1,0 +1,388 @@
+{
+  "meta": {
+    "brand": "Fluidity",
+    "tagline": "The sovereign cloud that adapts to you, fluidly.",
+    "seoKeywords": "Sovereign cloud Tunisia, Cloud Tunisia, Cloud Computing Tunisia, Cloud hosting Tunisia, IaaS Tunisia, Private cloud Tunisia, Data hosting Tunisia, Cloud backup Tunisia, DRP Tunisia, Cybersecurity Tunisia, Managed IT services"
+  },
+  "header": {
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "services": "Services",
+      "solutions": "Solutions",
+      "projects": "References",
+      "contact": "Contact"
+    },
+    "cta": "Request a quote",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu"
+  },
+  "language": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "toDark": "Switch to dark theme",
+    "toLight": "Switch to light theme"
+  },
+  "footer": {
+    "description": "Fluidity SA is a sovereign cloud platform hosted in Tunisia: cloud services, data hosting, IT infrastructure, backup, cybersecurity and managed services for businesses.",
+    "navTitle": "Navigation",
+    "servicesTitle": "Services",
+    "contactTitle": "Contact",
+    "legal": {
+      "mentions": "Legal notice",
+      "privacy": "Privacy policy"
+    },
+    "rights": "All rights reserved.",
+    "social": "Social media"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Sovereign cloud · Tunisia",
+      "titleA": "Your data",
+      "titleB": "at home,",
+      "titleC": "under your control.",
+      "subtitle": "Fluidity is the sovereign cloud platform that hosts your applications and data in Tunisia: performance, availability and full control of your systems, with close-range support.",
+      "ctaPrimary": "Request a quote",
+      "ctaSecondary": "Explore our services",
+      "visualLabel": "The Flow Engine — live WebGL visualization: scattered workloads become a controlled cloud",
+      "scrollHint": "Scroll to content",
+      "seoTitle": "Sovereign cloud Tunisia — Cloud, hosting and IT infrastructure for businesses"
+    },
+    "stats": {
+      "note": "Key platform figures — updated as we grow."
+    },
+    "about": {
+      "eyebrow": "About",
+      "title": "The sovereign cloud that adapts to you",
+      "statement": "A local, secure and controlled cloud, serving our clients' performance.",
+      "text1": "Fluidity SA is a sovereign cloud platform in Tunisia, specialized in cloud services, data hosting and IT infrastructure solutions for businesses and organizations. Our services are hosted locally, secured and tailored to performance, availability and data-control requirements.",
+      "text2": "Founded on 18 December 2025, Fluidity builds a sovereign alternative to foreign clouds: your data stays in Tunisia, under Tunisian law, with close-range technical support and solutions personalized to your needs.",
+      "missionTitle": "Mission",
+      "mission": "Provide businesses with reliable, secure cloud and IT services tailored to their needs.",
+      "visionTitle": "Vision",
+      "vision": "Become a reference player for sovereign cloud and digital services in Tunisia.",
+      "valuesEyebrow": "Our values",
+      "valuesTitle": "Sovereignty, trust and proximity"
+    },
+    "services": {
+      "eyebrow": "Services",
+      "title": "What our cloud does for you",
+      "lede": "From compute to cybersecurity: a complete range of locally hosted services, built for business-grade requirements.",
+      "discover": "Discover",
+      "prev": "Previous service",
+      "next": "Next service",
+      "all": "See all services"
+    },
+    "solutions": {
+      "eyebrow": "Solutions",
+      "title": "Concrete answers to your challenges",
+      "lede": "Where services describe what we do, solutions show what you get.",
+      "problemLabel": "Challenge",
+      "solutionLabel": "Our answer",
+      "benefitsLabel": "Benefits",
+      "all": "Explore solutions"
+    },
+    "why": {
+      "eyebrow": "Why Fluidity",
+      "title": "Why choose a sovereign cloud"
+    },
+    "process": {
+      "eyebrow": "Our method",
+      "title": "Clear support, from study to operations",
+      "lede": "Every project follows a proven, transparent process adapted to your pace.",
+      "stepLabel": "Step",
+      "prev": "Previous step",
+      "next": "Next step",
+      "pause": "Pause autoplay",
+      "play": "Resume autoplay"
+    },
+    "projects": {
+      "eyebrow": "References",
+      "title": "Trusted by",
+      "lede": "Our first client references will be published here once publication approvals are confirmed.",
+      "all": "See all references"
+    },
+    "tech": {
+      "eyebrow": "Expertise",
+      "title": "A complete technical foundation",
+      "lede": "Proven technologies and certified teams, adapted to every business context."
+    },
+    "testimonials": {
+      "eyebrow": "Testimonials",
+      "title": "What our clients say",
+      "empty": "Client testimonials will be published here after validation."
+    },
+    "cta": {
+      "title": "Ready to take back control of your cloud?",
+      "text": "Tell us about your need: hosting, backup, connectivity or cybersecurity. We'll come back with a first analysis and a quote.",
+      "action": "Request a quote"
+    }
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "About",
+      "title": "Fluidity SA, the Tunisian sovereign cloud",
+      "subtitle": "Who we are, what drives us and how we work."
+    },
+    "story": {
+      "eyebrow": "Our story",
+      "title": "Born in Tunisia, for Tunisian businesses",
+      "text1": "Founded on 18 December 2025, Fluidity SA is a sovereign cloud platform whose main activity, declared with the National Business Register, is data processing and hosting. It was born from a simple observation: Tunisian businesses need a local, reliable cloud that meets their own requirements.",
+      "text2": "Our ambition: locally hosted, secured services tailored to performance, availability and data-control requirements — with the close-range support that international clouds cannot offer."
+    },
+    "valuesEyebrow": "Our values",
+    "valuesTitle": "Sovereignty, trust and proximity",
+    "whyEyebrow": "Why Fluidity",
+    "whyTitle": "What we bring"
+  },
+  "servicesPage": {
+    "hero": {
+      "eyebrow": "Services",
+      "title": "Cloud services built to last",
+      "subtitle": "Cloud computing, hosting, backup, network, cybersecurity and managed services: the full lifecycle of your infrastructure, hosted in Tunisia."
+    },
+    "processEyebrow": "Our method",
+    "processTitle": "How we work",
+    "ctaTitle": "A need in mind?",
+    "ctaText": "Let's talk about your infrastructure and build the right answer together — from simple hosting to a full DRP."
+  },
+  "solutionsPage": {
+    "hero": {
+      "eyebrow": "Solutions",
+      "title": "Result-driven solutions",
+      "subtitle": "Every solution starts from a concrete business challenge and is measured by its benefits."
+    },
+    "ctaTitle": "Your challenge isn't listed here?",
+    "ctaText": "We also build fully tailored answers. Tell us about your context."
+  },
+  "projectsPage": {
+    "hero": {
+      "eyebrow": "References",
+      "title": "Our references",
+      "subtitle": "A selection of projects showcasing our areas of expertise and the results achieved."
+    },
+    "empty": "Our first case studies will be published as soon as client approvals are confirmed."
+  },
+  "contact": {
+    "hero": {
+      "eyebrow": "Contact",
+      "title": "Let's talk about your infrastructure",
+      "subtitle": "Describe your need: we'll get back to you within 48 business hours with a first analysis and a proposal."
+    },
+    "form": {
+      "name": "Full name",
+      "namePlaceholder": "Your name",
+      "company": "Company",
+      "companyPlaceholder": "Your company",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+216 00 000 000 (optional)",
+      "service": "Service of interest",
+      "servicePlaceholder": "Choose a service",
+      "serviceNone": "Other / not sure yet",
+      "requestType": "Request type",
+      "requestTypePlaceholder": "Choose a type",
+      "requestQuote": "Quote request",
+      "requestMeeting": "Book a meeting",
+      "requestInfo": "Information request",
+      "message": "Your message",
+      "messagePlaceholder": "Describe your need, your context and your goals…",
+      "submit": "Send message",
+      "sending": "Sending…",
+      "successTitle": "Message received!",
+      "successText": "Thank you for your message. Our team will reply within 48 business hours.",
+      "again": "Send another message",
+      "errors": {
+        "nameRequired": "Please enter your name.",
+        "emailRequired": "Please enter your email.",
+        "emailFormat": "The email format is invalid.",
+        "messageRequired": "Please describe your need.",
+        "messageMin": "Message too short — give us a few details.",
+        "submit": "Sending failed. Try again or email us directly."
+      }
+    },
+    "info": {
+      "title": "Contact details",
+      "addressLabel": "Address",
+      "emailLabel": "Email",
+      "emailPending": "N/A",
+      "phoneLabel": "Phone",
+      "phonePending": "N/A",
+      "hoursLabel": "Hours",
+      "socialTitle": "Follow us"
+    },
+    "mapNote": "Charguia 1 Industrial Zone, Tunis — 10 minutes from Tunis-Carthage Airport.",
+    "map": {
+      "title": "Fluidity SA on the map",
+      "caption": "Charguia 1 Industrial Zone, Tunis",
+      "openMaps": "Open in Maps",
+      "unavailable": "The map could not be loaded."
+    }
+  },
+  "legalPage": {
+    "mentions": {
+      "title": "Legal notice",
+      "updated": "Last updated: December 2025",
+      "intro": "The information below identifies the site publisher and the terms of use of its content.",
+      "editorTitle": "Site publisher",
+      "editorText": "Fluidity SA — Public limited company founded on 18 December 2025 · Main activity (RNE): data processing and hosting · Registered office: 9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis, Tunisia.",
+      "hostTitle": "Hosting",
+      "hostText": "This site is hosted on Fluidity SA's sovereign infrastructure in Tunisia — 9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis.",
+      "contactTitle": "Contact",
+      "contactText": "Fluidity SA — 9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis, Tunisia · Hours: 08:00 – 17:30.",
+      "ipTitle": "Intellectual property",
+      "ipText": "All content on this site (text, visuals, logo, structure) is protected. Any reproduction, even partial, without prior written authorization is prohibited."
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated: December 2025",
+      "intro": "This page describes how Fluidity SA collects and processes personal data submitted via this site, in accordance with Tunisian law No. 2004-63 on personal data protection and, for its international clients, the GDPR.",
+      "dataTitle": "Data collected",
+      "dataText": "The contact form collects: name, email, phone, company and message. This data is used solely to answer your request and kept only for the time needed to process it.",
+      "usageTitle": "Use of data",
+      "usageText": "Your data is never sold, transferred or shared with third parties for commercial purposes. Only authorized Fluidity SA staff have access, and it is hosted on our sovereign infrastructure in Tunisia.",
+      "rightsTitle": "Your rights",
+      "rightsText": "You have the right to access, rectify, oppose and delete your data. To exercise it, write to us: privacy@fluidity.tn."
+    }
+  },
+  "notFound": {
+    "code": "404",
+    "title": "This page has evaporated",
+    "text": "The page you are looking for does not exist or has been moved.",
+    "action": "Back to home"
+  },
+  "values": [
+    { "id": "souverainete", "icon": "shield", "title": "Sovereignty", "description": "Your data stays in Tunisia, hosted on our local infrastructure and governed by Tunisian law: control of your digital sovereignty is not something you delegate." },
+    { "id": "confiance", "icon": "heart-handshake", "title": "Trust", "description": "Security, availability and transparency on our commitments: we build relationships that last, contract after contract." },
+    { "id": "proximite", "icon": "users", "title": "Proximity", "description": "A team based in Tunisia, reachable and responsive: close-range technical support, from study to operations." },
+    { "id": "adaptation", "icon": "workflow", "title": "Adaptation", "description": "No rigid catalogue: solutions you can tailor to your needs, your constraints and your growth trajectory." }
+  ],
+  "services": [
+    {
+      "id": "iaas",
+      "icon": "cpu",
+      "title": "Cloud Infrastructure / IaaS",
+      "description": "Cloud resources to host your environments and applications: virtual machines, CPU, RAM, storage and network, on demand.",
+      "points": ["On-demand virtual machines", "CPU, RAM, storage and network resources", "Flexibility and scalability", "Local hosting and resource control"]
+    },
+    {
+      "id": "hebergement",
+      "icon": "database",
+      "title": "Hosting",
+      "description": "Hosting for your applications, websites and databases on our sovereign infrastructure in Tunisia, with the availability levels your business demands.",
+      "points": ["Web and application hosting", "Managed databases", "High availability", "Secure local datacenter"]
+    },
+    {
+      "id": "backup",
+      "icon": "cloud",
+      "title": "Backup",
+      "description": "Encrypted cloud backup for your critical data: retention strategies, externalized copies and fast, tested restoration.",
+      "points": ["Encrypted cloud backup", "Tailored retention strategies", "Tested, tooling-backed restoration", "Externalized copies"]
+    },
+    {
+      "id": "pra",
+      "icon": "life-buoy",
+      "title": "Disaster Recovery / DRP",
+      "description": "Disaster recovery planning: replication of your critical systems, controlled failover and guaranteed service continuity in case of a major incident.",
+      "points": ["Critical system replication", "Controlled failover", "Service continuity", "Regular recovery tests"]
+    },
+    {
+      "id": "connectivite",
+      "icon": "network",
+      "title": "Connectivity",
+      "description": "Dedicated, secure network links between your sites and our cloud: VPN, private interconnection and guaranteed quality of service for your business flows.",
+      "points": ["Dedicated links and VPN", "Private interconnection", "Guaranteed quality of service", "Redundant network"]
+    },
+    {
+      "id": "cybersecurite",
+      "icon": "shield",
+      "title": "Cybersecurity",
+      "description": "Protection for your systems and data: firewalls, intrusion detection, hardening and compliance support, built into our cloud.",
+      "points": ["Firewalls and intrusion detection", "System hardening", "Security by design", "Compliance support"]
+    },
+    {
+      "id": "manages",
+      "icon": "compass",
+      "title": "Monitoring & managed services",
+      "description": "Our teams monitor and operate your infrastructure 24/7: proactive monitoring, maintenance, support and continuous improvement.",
+      "points": ["24/7 monitoring", "Preventive and corrective maintenance", "Close-range support", "Continuous improvement"]
+    },
+    {
+      "id": "cloud-ia",
+      "icon": "sparkles",
+      "title": "AI Cloud",
+      "description": "GPU resources and AI platforms hosted in Tunisia: train and deploy your models without your data ever leaving the country.",
+      "points": ["On-demand GPU resources", "AI platforms hosted locally", "Data that never leaves Tunisia", "Deployment support"]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "cloud-prive",
+      "icon": "layers",
+      "title": "Sovereign private cloud",
+      "problem": "Your critical applications run on foreign providers: unpredictable latency, data outside Tunisian law, remote support and costs in foreign currency that spiral.",
+      "solution": "We migrate your environments to a private cloud hosted in Tunisia: dedicated resources sized to your real workload, with a local team that knows your systems and intervenes up close.",
+      "benefits": ["Data hosted in Tunisia", "Controlled performance and latency", "Close-range support in French and Arabic", "Predictable costs in dinars"],
+      "features": ["Dedicated or shared resources", "Assisted migration", "Monitoring and alerts", "On-demand scalability"]
+    },
+    {
+      "id": "continuite",
+      "icon": "life-buoy",
+      "title": "Business continuity",
+      "problem": "A major outage, disaster or ransomware can halt your business for days: without a tested recovery plan, every hour of downtime comes at a heavy price.",
+      "solution": "We design your continuity framework: encrypted backups, replication of critical systems to our cloud and a regularly tested DRP, for recovery measured in minutes rather than days.",
+      "benefits": ["Fast recovery after an incident", "Encrypted, externalized backups", "Regularly tested DRP", "Compliance with continuity requirements"],
+      "features": ["Automated backup", "Real-time or batch replication", "Failover testing", "Recovery documentation"]
+    },
+    {
+      "id": "donnees-souveraines",
+      "icon": "shield",
+      "title": "Sovereign data & compliance",
+      "problem": "Public sector, healthcare, finance: your obligations require control over data location and protection, while your current tools scatter it across hosts beyond your control.",
+      "solution": "We host your sensitive data on our Tunisian infrastructure with encryption, strict access control and complete logging — a foundation aligned with security and localization requirements.",
+      "benefits": ["Controlled data localization", "Encryption and access control", "Complete logging", "Compliance support"],
+      "features": ["Certifiable hosting", "Roles and permissions management", "Audit trails", "Tailored service contracts"]
+    }
+  ],
+  "why": [
+    { "id": "souverainete", "title": "Sovereignty", "description": "A cloud platform hosted in Tunisia: your data and infrastructure stay under your control and Tunisian law." },
+    { "id": "proximite", "title": "Proximity", "description": "Local technical support from study to operations: reachable teams who know your context." },
+    { "id": "maitrise", "title": "Control", "description": "Mastery of and proximity to infrastructure: we operate our own platform, with no opaque middleman." },
+    { "id": "gamme", "title": "Full range", "description": "Cloud, infrastructure, network, security and backup: one partner for your entire IT foundation." }
+  ],
+  "process": [
+    { "id": "decouverte", "title": "Discovery", "description": "Listening workshops and audits: we map your workloads, security constraints and continuity goals." },
+    { "id": "strategie", "title": "Strategy", "description": "We prioritize, size and plan: a clear target architecture, a controlled budget, defined milestones." },
+    { "id": "conception", "title": "Design", "description": "Technical architecture and migration plan validated together, before any deployment." },
+    { "id": "deploiement", "title": "Deployment", "description": "Supported go-live, migration of data and applications, training for your teams." },
+    { "id": "exploitation", "title": "Operations", "description": "Monitoring, maintenance and close-range support: your infrastructure stays performant over time." },
+    { "id": "evolution", "title": "Evolution", "description": "Regular reviews and on-demand scaling: your cloud grows with your business." }
+  ],
+  "projects": [],
+  "tech": [
+    { "id": "cloud", "title": "Cloud & virtualization", "items": ["IaaS", "Virtual machines", "Distributed storage", "SDN networking"] },
+    { "id": "donnees", "title": "Data & backup", "items": ["Managed databases", "Encrypted backup", "Replication", "DRP"] },
+    { "id": "securite", "title": "Security", "items": ["Next-gen firewalls", "Intrusion detection", "Encryption", "SOC monitoring"] },
+    { "id": "ia", "title": "Artificial intelligence", "items": ["GPU as a Service", "AI platforms", "MLOps", "Sovereign AI"] }
+  ],
+  "testimonials": [],
+  "stats": [
+    { "id": "local", "value": 100, "suffix": "%", "label": "Hosted in Tunisia" },
+    { "id": "services", "value": 8, "suffix": "", "label": "Areas of expertise" },
+    { "id": "supervision", "value": 24, "suffix": "/7", "label": "Monitoring & support" },
+    { "id": "creation", "value": 2025, "suffix": "", "label": "Platform launched" }
+  ],
+  "contactInfo": {
+    "address": "9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis",
+    "email": "N/A",
+    "phone": "71155590",
+    "hours": "Mon – Fri · 08:00 – 17:30"
+  },
+  "socialLinks": []
+}

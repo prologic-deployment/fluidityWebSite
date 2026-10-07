@@ -1,0 +1,388 @@
+{
+  "meta": {
+    "brand": "Fluidity",
+    "tagline": "Le cloud souverain qui s'adapte à vous en toute fluidité.",
+    "seoKeywords": "Cloud souverain Tunisie, Cloud Tunisie, Cloud Computing Tunisie, Hébergement Cloud Tunisie, IaaS Tunisie, Cloud privé Tunisie, Hébergement de données Tunisie, Backup Cloud Tunisie, PRA Tunisie, Cybersécurité Tunisie, Services managés IT"
+  },
+  "header": {
+    "nav": {
+      "home": "Accueil",
+      "about": "À propos",
+      "services": "Services",
+      "solutions": "Solutions",
+      "projects": "Réalisations",
+      "contact": "Contact"
+    },
+    "cta": "Demander un devis",
+    "menuOpen": "Ouvrir le menu",
+    "menuClose": "Fermer le menu"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "theme": {
+    "toggle": "Basculer le thème",
+    "toDark": "Passer en thème sombre",
+    "toLight": "Passer en thème clair"
+  },
+  "footer": {
+    "description": "Fluidity SA est une plateforme de cloud souverain hébergée en Tunisie : services cloud, hébergement de données, infrastructure IT, sauvegarde, cybersécurité et services managés pour les entreprises.",
+    "navTitle": "Navigation",
+    "servicesTitle": "Services",
+    "contactTitle": "Contact",
+    "legal": {
+      "mentions": "Mentions légales",
+      "privacy": "Politique de confidentialité"
+    },
+    "rights": "Tous droits réservés.",
+    "social": "Réseaux sociaux"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Cloud souverain · Tunisie",
+      "titleA": "Vos données",
+      "titleB": "chez vous,",
+      "titleC": "maîtrisées par vous.",
+      "subtitle": "Fluidity est la plateforme de cloud souverain qui héberge vos applications et vos données en Tunisie : performance, disponibilité et maîtrise totale de vos systèmes, avec un accompagnement de proximité.",
+      "ctaPrimary": "Demander un devis",
+      "ctaSecondary": "Découvrir nos services",
+      "visualLabel": "Le moteur de flux — visualisation WebGL en direct : des charges dispersées deviennent un cloud maîtrisé",
+      "scrollHint": "Défiler vers le contenu",
+      "seoTitle": "Cloud souverain Tunisie — Cloud, hébergement et infrastructure IT pour entreprises"
+    },
+    "stats": {
+      "note": "Chiffres clés de la plateforme — mis à jour au fil de notre croissance."
+    },
+    "about": {
+      "eyebrow": "À propos",
+      "title": "Le cloud souverain qui s'adapte à vous",
+      "statement": "Un cloud local, sécurisé et maîtrisé, au service de la performance de nos clients.",
+      "text1": "Fluidity SA est une plateforme de cloud souverain en Tunisie, spécialisée dans les services cloud, l'hébergement de données et les solutions d'infrastructure IT destinés aux entreprises et organisations. Nos services sont hébergés localement, sécurisés et adaptés aux exigences de performance, de disponibilité et de maîtrise des données.",
+      "text2": "Créée le 18 décembre 2025, Fluidity construit une alternative souveraine aux clouds étrangers : vos données restent en Tunisie, sous le droit tunisien, avec un accompagnement technique de proximité et des solutions personnalisées selon vos besoins.",
+      "missionTitle": "Mission",
+      "mission": "Fournir aux entreprises des services cloud et IT fiables, sécurisés et adaptés à leurs besoins.",
+      "visionTitle": "Vision",
+      "vision": "Devenir un acteur de référence du cloud souverain et des services numériques en Tunisie.",
+      "valuesEyebrow": "Nos valeurs",
+      "valuesTitle": "Souveraineté, confiance et proximité"
+    },
+    "services": {
+      "eyebrow": "Services",
+      "title": "Ce que notre cloud fait pour vous",
+      "lede": "Du compute à la cybersécurité : une gamme complète de services hébergés localement, pensée pour les exigences des entreprises.",
+      "discover": "Découvrir",
+      "prev": "Service précédent",
+      "next": "Service suivant",
+      "all": "Voir tous les services"
+    },
+    "solutions": {
+      "eyebrow": "Solutions",
+      "title": "Des réponses concrètes à vos enjeux",
+      "lede": "Là où les services décrivent ce que nous faisons, les solutions montrent ce que vous obtenez.",
+      "problemLabel": "Enjeu",
+      "solutionLabel": "Notre réponse",
+      "benefitsLabel": "Bénéfices",
+      "all": "Explorer les solutions"
+    },
+    "why": {
+      "eyebrow": "Pourquoi Fluidity",
+      "title": "Pourquoi choisir un cloud souverain"
+    },
+    "process": {
+      "eyebrow": "Notre méthode",
+      "title": "Un accompagnement clair, de l'étude à l'exploitation",
+      "lede": "Chaque projet suit un processus éprouvé, transparent et adapté à votre rythme.",
+      "stepLabel": "Étape",
+      "prev": "Étape précédente",
+      "next": "Étape suivante",
+      "pause": "Mettre en pause",
+      "play": "Reprendre la lecture"
+    },
+    "projects": {
+      "eyebrow": "Références",
+      "title": "Ils nous font confiance",
+      "lede": "Nos premières références clients seront publiées ici dès validation des autorisations de publication.",
+      "all": "Voir toutes les réalisations"
+    },
+    "tech": {
+      "eyebrow": "Expertise",
+      "title": "Un socle technique complet",
+      "lede": "Des technologies éprouvées et des équipes certifiées, adaptées à chaque contexte d'entreprise."
+    },
+    "testimonials": {
+      "eyebrow": "Témoignages",
+      "title": "Ce que disent nos clients",
+      "empty": "Les témoignages clients seront publiés ici après validation."
+    },
+    "cta": {
+      "title": "Prêt à reprendre le contrôle de votre cloud ?",
+      "text": "Décrivez-nous votre besoin : hébergement, sauvegarde, connectivité ou cybersécurité. Nous revenons vers vous avec une première analyse et un devis.",
+      "action": "Demander un devis"
+    }
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "À propos",
+      "title": "Fluidity SA, le cloud souverain tunisien",
+      "subtitle": "Qui nous sommes, ce qui nous anime et la manière dont nous travaillons."
+    },
+    "story": {
+      "eyebrow": "Notre histoire",
+      "title": "Née en Tunisie, pour les entreprises tunisiennes",
+      "text1": "Créée le 18 décembre 2025, Fluidity SA est une plateforme de cloud souverain dont l'activité principale, déclarée au Registre National des Entreprises, est le traitement et l'hébergement de données. Elle est née d'un constat : les entreprises tunisiennes ont besoin d'un cloud local, fiable et conforme à leurs exigences.",
+      "text2": "Notre ambition : proposer des services hébergés localement, sécurisés et adaptés aux exigences de performance, de disponibilité et de maîtrise des données — avec un accompagnement de proximité que les grands clouds internationaux ne peuvent pas offrir."
+    },
+    "valuesEyebrow": "Nos valeurs",
+    "valuesTitle": "Souveraineté, confiance et proximité",
+    "whyEyebrow": "Pourquoi Fluidity",
+    "whyTitle": "Ce que nous apportons"
+  },
+  "servicesPage": {
+    "hero": {
+      "eyebrow": "Services",
+      "title": "Des services cloud pensés pour durer",
+      "subtitle": "Cloud computing, hébergement, sauvegarde, réseau, cybersécurité et services managés : le cycle de vie complet de votre infrastructure, hébergé en Tunisie."
+    },
+    "processEyebrow": "Notre méthode",
+    "processTitle": "Comment nous travaillons",
+    "ctaTitle": "Un besoin en tête ?",
+    "ctaText": "Parlons de votre infrastructure et construisons ensemble la réponse adaptée — du simple hébergement au PRA complet."
+  },
+  "solutionsPage": {
+    "hero": {
+      "eyebrow": "Solutions",
+      "title": "Des solutions orientées résultats",
+      "subtitle": "Chaque solution part d'un enjeu métier concret et se mesure à ses bénéfices."
+    },
+    "ctaTitle": "Votre enjeu n'apparaît pas ici ?",
+    "ctaText": "Nous construisons aussi des réponses sur mesure. Exposez-nous votre contexte."
+  },
+  "projectsPage": {
+    "hero": {
+      "eyebrow": "Réalisations",
+      "title": "Nos réalisations",
+      "subtitle": "Une sélection de projets illustrant nos domaines d'intervention et les résultats obtenus."
+    },
+    "empty": "Nos premières études de cas seront publiées dès que les autorisations clients seront confirmées."
+  },
+  "contact": {
+    "hero": {
+      "eyebrow": "Contact",
+      "title": "Parlons de votre infrastructure",
+      "subtitle": "Décrivez-nous votre besoin : nous revenons vers vous sous 48 heures ouvrées avec une première analyse et une proposition."
+    },
+    "form": {
+      "name": "Nom complet",
+      "namePlaceholder": "Votre nom",
+      "company": "Entreprise",
+      "companyPlaceholder": "Votre entreprise",
+      "email": "Email",
+      "emailPlaceholder": "vous@exemple.com",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+216 00 000 000 (optionnel)",
+      "service": "Service concerné",
+      "servicePlaceholder": "Choisir un service",
+      "serviceNone": "Autre / je ne sais pas encore",
+      "requestType": "Type de demande",
+      "requestTypePlaceholder": "Choisir un type",
+      "requestQuote": "Demande de devis",
+      "requestMeeting": "Prise de rendez-vous",
+      "requestInfo": "Demande d'information",
+      "message": "Votre message",
+      "messagePlaceholder": "Décrivez votre besoin, votre contexte et vos objectifs…",
+      "submit": "Envoyer le message",
+      "sending": "Envoi en cours…",
+      "successTitle": "Message bien reçu !",
+      "successText": "Merci pour votre message. Notre équipe vous répondra sous 48 heures ouvrées.",
+      "again": "Envoyer un autre message",
+      "errors": {
+        "nameRequired": "Veuillez indiquer votre nom.",
+        "emailRequired": "Veuillez indiquer votre email.",
+        "emailFormat": "Le format de l'email est invalide.",
+        "messageRequired": "Veuillez décrire votre besoin.",
+        "messageMin": "Message trop court — donnez-nous quelques détails.",
+        "submit": "L'envoi a échoué. Réessayez ou écrivez-nous directement par email."
+      }
+    },
+    "info": {
+      "title": "Coordonnées",
+      "addressLabel": "Adresse",
+      "emailLabel": "Email",
+      "emailPending": "À confirmer prochainement",
+      "phoneLabel": "Téléphone",
+      "phonePending": "À confirmer prochainement",
+      "hoursLabel": "Horaires",
+      "socialTitle": "Nous suivre"
+    },
+    "mapNote": "Zone industrielle Charguia 1, Tunis — à 10 minutes de l'aéroport Tunis-Carthage.",
+    "map": {
+      "title": "Fluidity SA sur la carte",
+      "caption": "ZI Charguia 1, Tunis",
+      "openMaps": "Ouvrir dans Maps",
+      "unavailable": "La carte n'a pas pu être chargée."
+    }
+  },
+  "legalPage": {
+    "mentions": {
+      "title": "Mentions légales",
+      "updated": "Dernière mise à jour : décembre 2025",
+      "intro": "Les informations ci-dessous identifient l'éditeur du site et les conditions d'utilisation des contenus.",
+      "editorTitle": "Éditeur du site",
+      "editorText": "Fluidity SA — Société anonyme créée le 18 décembre 2025 · Activité principale (RNE) : traitement et hébergement de données · Siège social : 9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis, Tunisie.",
+      "hostTitle": "Hébergement",
+      "hostText": "Ce site est hébergé sur l'infrastructure souveraine de Fluidity SA en Tunisie — 9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis.",
+      "contactTitle": "Contact",
+      "contactText": "Fluidity SA — 9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis, Tunisie · Horaires : 08h00 – 17h30.",
+      "ipTitle": "Propriété intellectuelle",
+      "ipText": "L'ensemble des contenus du site (textes, visuels, logo, structure) est protégé. Toute reproduction, même partielle, sans autorisation écrite préalable est interdite."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "updated": "Dernière mise à jour : décembre 2025",
+      "intro": "Cette page décrit la manière dont Fluidity SA collecte et traite les données personnelles transmises via ce site, conformément à la loi tunisienne n° 2004-63 relative à la protection des données personnelles et, pour ses clients internationaux, au RGPD.",
+      "dataTitle": "Données collectées",
+      "dataText": "Le formulaire de contact collecte : nom, email, téléphone, entreprise et message. Ces données sont utilisées uniquement pour répondre à votre demande et ne sont conservées que le temps nécessaire à son traitement.",
+      "usageTitle": "Utilisation des données",
+      "usageText": "Vos données ne sont ni vendues, ni cédées, ni partagées avec des tiers à des fins commerciales. Seules les personnes habilitées de Fluidity SA y ont accès, et elles sont hébergées sur notre infrastructure souveraine en Tunisie.",
+      "rightsTitle": "Vos droits",
+      "rightsText": "Vous disposez d'un droit d'accès, de rectification, d'opposition et de suppression de vos données. Pour l'exercer, écrivez-nous : privacy@fluidity.tn."
+    }
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Cette page s'est évaporée",
+    "text": "La page que vous cherchez n'existe pas ou a été déplacée.",
+    "action": "Retour à l'accueil"
+  },
+  "values": [
+    { "id": "souverainete", "icon": "shield", "title": "Souveraineté", "description": "Vos données restent en Tunisie, hébergées sur notre infrastructure locale et soumises au droit tunisien : la maîtrise de votre numérique ne se délègue pas." },
+    { "id": "confiance", "icon": "heart-handshake", "title": "Confiance", "description": "Sécurité, disponibilité et transparence sur nos engagements : nous construisons des relations qui durent, contrat après contrat." },
+    { "id": "proximite", "icon": "users", "title": "Proximité", "description": "Une équipe basée en Tunisie, joignable et réactive : un accompagnement technique de proximité, de l'étude à l'exploitation." },
+    { "id": "adaptation", "icon": "workflow", "title": "Adaptation", "description": "Pas de catalogue rigide : des solutions personnalisables selon vos besoins, vos contraintes et votre trajectoire de croissance." }
+  ],
+  "services": [
+    {
+      "id": "iaas",
+      "icon": "cpu",
+      "title": "Cloud Infrastructure / IaaS",
+      "description": "Mise à disposition de ressources cloud pour héberger vos environnements et applications : machines virtuelles, CPU, RAM, stockage et réseau, à la demande.",
+      "points": ["Machines virtuelles à la demande", "Ressources CPU, RAM, stockage et réseau", "Flexibilité et évolutivité", "Hébergement local et maîtrise des ressources"]
+    },
+    {
+      "id": "hebergement",
+      "icon": "database",
+      "title": "Hébergement",
+      "description": "Hébergement de vos applications, sites et bases de données sur notre infrastructure souveraine en Tunisie, avec les niveaux de disponibilité exigés par votre métier.",
+      "points": ["Hébergement web et applicatif", "Bases de données managées", "Haute disponibilité", "Datacenter local sécurisé"]
+    },
+    {
+      "id": "backup",
+      "icon": "cloud",
+      "title": "Backup",
+      "description": "Sauvegarde cloud chiffrée de vos données critiques : stratégies de rétention, copies externalisées et restauration rapide et testée.",
+      "points": ["Sauvegarde cloud chiffrée", "Stratégies de rétention sur mesure", "Restauration testée et outillée", "Copies externalisées"]
+    },
+    {
+      "id": "pra",
+      "icon": "life-buoy",
+      "title": "Disaster Recovery / PRA",
+      "description": "Plan de reprise d'activité : réplication de vos systèmes critiques, bascule maîtrisée et continuité de service garantie en cas d'incident majeur.",
+      "points": ["Réplication des systèmes critiques", "Bascule maîtrisée", "Continuité de service", "Tests de reprise réguliers"]
+    },
+    {
+      "id": "connectivite",
+      "icon": "network",
+      "title": "Connectivité",
+      "description": "Liens réseau dédiés et sécurisés entre vos sites et notre cloud : VPN, interconnexion privée et qualité de service garantie pour vos flux métier.",
+      "points": ["Liens dédiés et VPN", "Interconnexion privée", "Qualité de service garantie", "Réseau redondant"]
+    },
+    {
+      "id": "cybersecurite",
+      "icon": "shield",
+      "title": "Cybersécurité",
+      "description": "Protection de vos systèmes et de vos données : pare-feu, détection d'intrusion, durcissement et accompagnement conformité, intégrés à notre cloud.",
+      "points": ["Pare-feu et détection d'intrusion", "Durcissement des systèmes", "Approche sécurité dès la conception", "Accompagnement conformité"]
+    },
+    {
+      "id": "manages",
+      "icon": "compass",
+      "title": "Supervision & services managés",
+      "description": "Nos équipes supervisent et exploitent votre infrastructure 24h/24 : monitoring proactif, maintenance, support et amélioration continue.",
+      "points": ["Supervision 24h/24", "Maintenance préventive et corrective", "Support de proximité", "Amélioration continue"]
+    },
+    {
+      "id": "cloud-ia",
+      "icon": "sparkles",
+      "title": "Cloud IA",
+      "description": "Ressources GPU et plateformes d'intelligence artificielle hébergées en Tunisie : entraînez et déployez vos modèles sans faire sortir vos données du pays.",
+      "points": ["Ressources GPU à la demande", "Plateformes IA hébergées localement", "Données qui ne quittent pas la Tunisie", "Accompagnement au déploiement"]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "cloud-prive",
+      "icon": "layers",
+      "title": "Cloud privé souverain",
+      "problem": "Vos applications critiques tournent chez des fournisseurs étrangers : latence imprévisible, données hors du droit tunisien, support à distance et coûts en devises qui dérapent.",
+      "solution": "Nous migrons vos environnements vers un cloud privé hébergé en Tunisie : ressources dédiées, dimensionnées à votre charge réelle, avec une équipe locale qui connaît vos systèmes et intervient au plus près.",
+      "benefits": ["Données hébergées en Tunisie", "Performance et latence maîtrisées", "Support de proximité en français et en arabe", "Coûts prévisibles en dinars"],
+      "features": ["Ressources dédiées ou partagées", "Migration accompagnée", "Supervision et alertes", "Évolutivité à la demande"]
+    },
+    {
+      "id": "continuite",
+      "icon": "life-buoy",
+      "title": "Continuité d'activité",
+      "problem": "Une panne majeure, un sinistre ou un ransomware peut arrêter votre activité pendant des jours : sans plan de reprise éprouvé, chaque heure d'arrêt se paie au prix fort.",
+      "solution": "Nous concevons votre dispositif de continuité : sauvegardes chiffrées, réplication des systèmes critiques vers notre cloud et PRA testé régulièrement, pour une reprise mesurée en minutes et non en jours.",
+      "benefits": ["Reprise rapide après incident", "Sauvegardes chiffrées et externalisées", "PRA testé régulièrement", "Conformité aux exigences de continuité"],
+      "features": ["Backup automatisé", "Réplication temps réel ou par lots", "Tests de bascule", "Documentation de reprise"]
+    },
+    {
+      "id": "donnees-souveraines",
+      "icon": "shield",
+      "title": "Données souveraines & conformité",
+      "problem": "Secteur public, santé, finance : vos obligations vous imposent de maîtriser la localisation et la protection des données, alors que vos outils actuels les dispersent chez des hébergeurs hors de contrôle.",
+      "solution": "Nous hébergeons vos données sensibles sur notre infrastructure tunisienne avec chiffrement, contrôle d'accès strict et journalisation complète — un socle conforme aux exigences de sécurité et de localisation.",
+      "benefits": ["Localisation des données maîtrisée", "Chiffrement et contrôle d'accès", "Journalisation complète", "Accompagnement conformité"],
+      "features": ["Hébergement certifiable", "Gestion des rôles et des droits", "Pistes d'audit", "Contrats de service adaptés"]
+    }
+  ],
+  "why": [
+    { "id": "souverainete", "title": "Souveraineté", "description": "Une plateforme de cloud hébergée en Tunisie : vos données et vos infrastructures restent sous votre contrôle et sous le droit tunisien." },
+    { "id": "proximite", "title": "Proximité", "description": "Un accompagnement technique local, de l'étude à l'exploitation : des équipes joignables qui connaissent votre contexte." },
+    { "id": "maitrise", "title": "Maîtrise", "description": "Maîtrise et proximité des infrastructures : nous opérons notre propre plateforme, sans intermédiaire opaque." },
+    { "id": "gamme", "title": "Gamme complète", "description": "Cloud, infrastructure, réseau, sécurité et sauvegarde : un seul partenaire pour l'ensemble de votre socle IT." }
+  ],
+  "process": [
+    { "id": "decouverte", "title": "Découverte", "description": "Ateliers d'écoute et d'audit : nous cartographions vos charges, vos contraintes de sécurité et vos objectifs de continuité." },
+    { "id": "strategie", "title": "Stratégie", "description": "Nous priorisons, dimensionnons et planifions : architecture cible claire, budget maîtrisé, jalons définis." },
+    { "id": "conception", "title": "Conception", "description": "Architecture technique et plan de migration validés ensemble, avant tout déploiement." },
+    { "id": "deploiement", "title": "Déploiement", "description": "Mise en production accompagnée, migration des données et des applications, formation de vos équipes." },
+    { "id": "exploitation", "title": "Exploitation", "description": "Supervision, maintenance et support de proximité : votre infrastructure reste performante dans la durée." },
+    { "id": "evolution", "title": "Évolution", "description": "Revues régulières et montée en charge à la demande : votre cloud grandit avec votre activité." }
+  ],
+  "projects": [],
+  "tech": [
+    { "id": "cloud", "title": "Cloud & virtualisation", "items": ["IaaS", "Machines virtuelles", "Stockage distribué", "Réseau SDN"] },
+    { "id": "donnees", "title": "Données & sauvegarde", "items": ["Bases de données managées", "Backup chiffré", "Réplication", "PRA"] },
+    { "id": "securite", "title": "Sécurité", "items": ["Pare-feu nouvelle génération", "Détection d'intrusion", "Chiffrement", "Supervision SOC"] },
+    { "id": "ia", "title": "Intelligence artificielle", "items": ["GPU as a Service", "Plateformes IA", "MLOps", "IA souveraine"] }
+  ],
+  "testimonials": [],
+  "stats": [
+    { "id": "local", "value": 100, "suffix": "%", "label": "Hébergé en Tunisie" },
+    { "id": "services", "value": 8, "suffix": "", "label": "Domaines d'expertise" },
+    { "id": "supervision", "value": 24, "suffix": "/7", "label": "Supervision et support" },
+    { "id": "creation", "value": 2025, "suffix": "", "label": "Plateforme lancée en" }
+  ],
+  "contactInfo": {
+    "address": "9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis",
+    "email": "À confirmer prochainement",
+    "phone": "71155590",
+    "hours": "Lun – Ven · 08h00 – 17h30"
+  },
+  "socialLinks": []
+}

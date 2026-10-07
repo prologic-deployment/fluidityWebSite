@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.angular/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs & local env
+*.log
+npm-debug.log*
+.env
+.env.*
+
+# Agent workspace notes (not part of the site)
+.freebuff/

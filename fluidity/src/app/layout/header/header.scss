@@ -1,0 +1,210 @@
+@use 'tokens' as *;
+
+// ============================================================================
+// Header
+// ============================================================================
+
+:host {
+  display: block;
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: $z-header;
+}
+
+.bar {
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  border-bottom: 1px solid transparent;
+}
+
+// Overlay style — only when at top of the home page.
+// The hero backdrop is var(--bg) (near-white in light, near-black in dark),
+// so the overlay colors must follow the theme — never hardcode white.
+// Custom properties cross encapsulation into child components.
+.bar--home {
+  background: transparent;
+  border-bottom-color: transparent;
+  --hdr-fg: var(--text-1);
+  --hdr-border: var(--border-strong);
+
+  .nav-link,
+  .menu-btn {
+    color: var(--hdr-fg);
+  }
+
+  .menu-btn {
+    border-color: var(--hdr-border);
+  }
+}
+
+// Solid / glass style — when scrolled or on sub-pages
+.bar--solid {
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom-color: var(--glass-border);
+  box-shadow: var(--shadow-1);
+}
+
+.bar-inner {
+  display: flex;
+  align-items: center;
+  gap: $space-5;
+  height: 4.5rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.brand-logo {
+  height: 1.75rem;
+  width: auto;
+  display: block;
+}
+
+// Official logo artwork is dark navy — recolor to white on dark backgrounds.
+html[data-theme='dark'] .brand-logo,
+:host-context([data-theme='dark']) .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.brand-name {
+  font-family: $font-display;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
+}
+
+.nav-desktop {
+  display: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  margin-inline-start: auto;
+}
+
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: $radius-full;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-1);
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.menu-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.header-cta {
+  display: none;
+}
+
+// --- Desktop -----------------------------------------------------------------
+@media (min-width: 64em) {
+  .nav-desktop {
+    display: flex;
+    align-items: center;
+    gap: $space-5;
+    margin-inline-start: $space-6;
+  }
+
+  .nav-link {
+    color: var(--text-2);
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    &.is-active,
+    &:hover {
+      color: var(--accent);
+    }
+  }
+
+  .menu-btn {
+    display: none;
+  }
+
+  .header-cta {
+    display: inline-flex;
+  }
+}
+
+// --- Mobile menu -------------------------------------------------------------
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: $z-overlay;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: $gutter;
+  background: var(--bg);
+  animation: menu-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.mobile-link {
+  font-family: $font-display;
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  font-weight: 700;
+  color: var(--text-1);
+  text-decoration: none;
+  padding-block: 0.4rem;
+  opacity: 0;
+  transform: translateY(1rem);
+  animation: link-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--stagger) * 55ms + 80ms);
+
+  &.is-active {
+    color: var(--accent);
+  }
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+@keyframes link-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  margin-top: $space-7;
+  padding-top: $space-5;
+  border-top: 1px solid var(--border);
+}

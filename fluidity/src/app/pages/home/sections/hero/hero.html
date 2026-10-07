@@ -1,0 +1,33 @@
+<section class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-canvas" aria-hidden="true">
+    <app-fluid-visual [density]="density()" />
+  </div>
+  <div class="hero-scrim" aria-hidden="true"></div>
+
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow" appReveal>{{ i18n.t('home.hero.eyebrow') }}</p>
+
+      <h1 class="hero-title">
+        <span class="line" appReveal [appRevealDelay]="60">{{ i18n.t('home.hero.titleA') }}</span>
+        <span class="line line--chaos" appReveal [appRevealDelay]="140">{{ i18n.t('home.hero.titleB') }}</span>
+        <span class="line line--grad" appReveal [appRevealDelay]="220">{{ i18n.t('home.hero.titleC') }}</span>
+      </h1>
+
+      <p class="hero-sub" appReveal [appRevealDelay]="220">{{ i18n.t('home.hero.subtitle') }}</p>
+
+      <div class="hero-ctas" appReveal [appRevealDelay]="300">
+        <a routerLink="/contact" class="btn btn-primary btn-lg">
+          <span>{{ i18n.t('home.hero.ctaPrimary') }}</span>
+          <lucide-icon [img]="arrowIcon" size="18" [attr.aria-hidden]="true" />
+        </a>
+        <a routerLink="/services" class="btn btn-ghost btn-lg">{{ i18n.t('home.hero.ctaSecondary') }}</a>
+      </div>
+    </div>
+  </div>
+
+  <a class="scroll-hint" href="#stats" [attr.aria-label]="i18n.t('home.hero.scrollHint')">
+    <lucide-icon [img]="arrowDownIcon" size="20" [attr.aria-hidden]="true" />
+  </a>
+</section>

@@ -1,0 +1,162 @@
+@use 'tokens' as *;
+
+// ============================================================================
+// Hero
+// ============================================================================
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  padding-block-start: 4.5rem;
+}
+
+// --- Background stack --------------------------------------------------------
+// Layer 1: ambient gradients (softened so the WebGL streams stay visible).
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 80% at 78% 30%, rgb(102 126 234 / 0.12), transparent 70%),
+    radial-gradient(50% 70% at 18% 78%, rgb(0 201 167 / 0.08), transparent 70%),
+    var(--bg);
+}
+
+// Layer 2: full-bleed fluid animation behind all hero content.
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+// Layer 3: readability scrim under the copy — starts near the viewport edge so
+// the wide headline stays legible while the right side of the canvas stays open.
+.hero-scrim {
+  --hero-fade: linear-gradient(
+    97deg,
+    var(--bg) 0%,
+    color-mix(in srgb, var(--bg) 72%, transparent) 38%,
+    color-mix(in srgb, var(--bg) 30%, transparent) 62%,
+    transparent 92%
+  );
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--hero-fade);
+}
+
+// Light mode: bright particles wash out on the pale background, so add a
+// slight vertical veil on top of the canvas.
+:host-context([data-theme='light']) .hero-scrim {
+  background:
+    linear-gradient(180deg, rgb(247 248 252 / 0.55), rgb(247 248 252 / 0.3) 45%, transparent),
+    var(--hero-fade);
+}
+
+// RTL: copy flips to the right side, so mirror the horizontal fade.
+:host-context([dir='rtl']) .hero-scrim {
+  --hero-fade: linear-gradient(
+    263deg,
+    var(--bg) 0%,
+    color-mix(in srgb, var(--bg) 72%, transparent) 38%,
+    color-mix(in srgb, var(--bg) 30%, transparent) 62%,
+    transparent 92%
+  );
+}
+
+// Layer 4: content — wide, near edge-to-edge, headline flows across the canvas.
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 2.2vw, 2rem);
+  padding-block: $space-8 $space-9;
+}
+
+.hero-copy {
+  width: 100%;
+  padding-inline-start: clamp(1.5rem, 3vw, 3rem);
+}
+
+.hero-title {
+  font-size: $font-size-hero;
+  font-weight: 1000;
+  letter-spacing: 0.05em;
+  margin-block-start: $space-5;
+  max-width: none;
+}
+
+.hero-title .line {
+  display: block;
+}
+
+// Slogan line colors echo the scene: neutral ink → chaos pink → flow gradient.
+.line--chaos {
+  color: #02BFA0;
+}
+
+:host-context([data-theme='light']) .line--chaos {
+  color: #02BFA0;
+}
+
+.line--grad {
+  @include text-gradient;
+}
+
+.hero-sub {
+  margin-block-start: $space-5;
+  font-size: $font-size-500;
+  color: var(--text-2);
+  max-width: 38rem;
+}
+
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-block-start: $space-6;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: $radius-full;
+  border: 1px solid var(--border-strong);
+  color: var(--text-3);
+  background: var(--glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: hint-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes hint-bob {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint {
+    animation: none;
+  }
+}

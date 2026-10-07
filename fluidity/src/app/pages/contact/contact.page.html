@@ -1,0 +1,214 @@
+<section class="page-hero">
+  <div class="container">
+    <p class="eyebrow" appReveal>{{ i18n.t('contact.hero.eyebrow') }}</p>
+    <h1 appReveal [appRevealDelay]="80">{{ i18n.t('contact.hero.title') }}</h1>
+    <p class="lede" appReveal [appRevealDelay]="160">{{ i18n.t('contact.hero.subtitle') }}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container layout">
+    <div class="form-col" appReveal>
+      @if (succeeded()) {
+        <div class="success" role="status">
+          <lucide-icon [img]="sendIcon" size="30" [attr.aria-hidden]="true" />
+          <h2>{{ i18n.t('contact.form.successTitle') }}</h2>
+          <p>{{ i18n.t('contact.form.successText') }}</p>
+          <button type="button" class="btn btn-ghost" (click)="reset()">
+            {{ i18n.t('contact.form.again') }}
+          </button>
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="c-name">{{ i18n.t('contact.form.name') }} *</label>
+              <input
+                id="c-name"
+                type="text"
+                class="field-control"
+                formControlName="name"
+                [placeholder]="i18n.t('contact.form.namePlaceholder')"
+                [attr.aria-invalid]="!!errorFor('name')"
+                [attr.aria-describedby]="errorFor('name') ? 'c-name-error' : null"
+              />
+              @if (errorFor('name')) {
+                <p class="field-error" id="c-name-error">
+                  <lucide-icon [img]="alertIcon" size="14" [attr.aria-hidden]="true" />
+                  {{ errorFor('name') }}
+                </p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="c-company">{{ i18n.t('contact.form.company') }}</label>
+              <input
+                id="c-company"
+                type="text"
+                class="field-control"
+                formControlName="company"
+                [placeholder]="i18n.t('contact.form.companyPlaceholder')"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="c-email">{{ i18n.t('contact.form.email') }} *</label>
+              <input
+                id="c-email"
+                type="email"
+                class="field-control"
+                formControlName="email"
+                [placeholder]="i18n.t('contact.form.emailPlaceholder')"
+                [attr.aria-invalid]="!!errorFor('email')"
+                [attr.aria-describedby]="errorFor('email') ? 'c-email-error' : null"
+              />
+              @if (errorFor('email')) {
+                <p class="field-error" id="c-email-error">
+                  <lucide-icon [img]="alertIcon" size="14" [attr.aria-hidden]="true" />
+                  {{ errorFor('email') }}
+                </p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="c-phone">{{ i18n.t('contact.form.phone') }}</label>
+              <input
+                id="c-phone"
+                type="tel"
+                class="field-control"
+                formControlName="phone"
+                [placeholder]="i18n.t('contact.form.phonePlaceholder')"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="c-request">{{ i18n.t('contact.form.requestType') }}</label>
+              <div class="select-wrap">
+                <select id="c-request" class="field-control" formControlName="requestType">
+                  <option value="">{{ i18n.t('contact.form.requestTypePlaceholder') }}</option>
+                  <option value="quote">{{ i18n.t('contact.form.requestQuote') }}</option>
+                  <option value="meeting">{{ i18n.t('contact.form.requestMeeting') }}</option>
+                  <option value="info">{{ i18n.t('contact.form.requestInfo') }}</option>
+                </select>
+                <lucide-icon [img]="chevronIcon" size="16" [attr.aria-hidden]="true" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="c-service">{{ i18n.t('contact.form.service') }}</label>
+              <div class="select-wrap">
+                <select id="c-service" class="field-control" formControlName="service">
+                  <option value="">{{ i18n.t('contact.form.servicePlaceholder') }}</option>
+                  @for (service of services(); track service.id) {
+                    <option [value]="service.id">{{ service.title }}</option>
+                  }
+                  <option value="other">{{ i18n.t('contact.form.serviceNone') }}</option>
+                </select>
+                <lucide-icon [img]="chevronIcon" size="16" [attr.aria-hidden]="true" />
+              </div>
+            </div>
+
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="c-message">{{ i18n.t('contact.form.message') }} *</label>
+            <textarea
+              id="c-message"
+              class="field-control"
+              formControlName="message"
+              rows="6"
+              [placeholder]="i18n.t('contact.form.messagePlaceholder')"
+              [attr.aria-invalid]="!!errorFor('message')"
+              [attr.aria-describedby]="errorFor('message') ? 'c-message-error' : null"
+            ></textarea>
+            @if (errorFor('message')) {
+              <p class="field-error" id="c-message-error">
+                <lucide-icon [img]="alertIcon" size="14" [attr.aria-hidden]="true" />
+                {{ errorFor('message') }}
+              </p>
+            }
+          </div>
+
+          @if (submitError()) {
+            <div class="submit-error" role="alert">
+              <lucide-icon [img]="alertIcon" size="16" [attr.aria-hidden]="true" />
+              {{ submitError() }}
+            </div>
+          }
+
+          <button type="submit" class="btn btn-primary btn-lg" [disabled]="submitting()">
+            @if (submitting()) {
+              <lucide-icon [img]="loaderIcon" size="18" class="spin" [attr.aria-hidden]="true" />
+              <span>{{ i18n.t('contact.form.sending') }}</span>
+            } @else {
+              <span>{{ i18n.t('contact.form.submit') }}</span>
+              <lucide-icon [img]="sendIcon" size="18" [attr.aria-hidden]="true" />
+            }
+          </button>
+        </form>
+      }
+    </div>
+
+    <aside class="info-col" appReveal [appRevealDelay]="120">
+      <h2>{{ i18n.t('contact.info.title') }}</h2>
+      <ul class="info-list">
+        <li>
+          <app-icon [name]="'map-pin'" />
+          <div>
+            <span class="info-label">{{ i18n.t('contact.info.addressLabel') }}</span>
+            <span>{{ i18n.t('contactInfo.address') }}</span>
+          </div>
+        </li>
+        <li>
+          <app-icon [name]="'mail'" />
+          <div>
+            <span class="info-label">{{ i18n.t('contact.info.emailLabel') }}</span>
+            <span>{{ i18n.t('contactInfo.email') }}</span>
+          </div>
+        </li>
+        <li>
+          <app-icon [name]="'phone'" />
+          <div>
+            <span class="info-label">{{ i18n.t('contact.info.phoneLabel') }}</span>
+            <span>{{ i18n.t('contactInfo.phone') }}</span>
+          </div>
+        </li>
+        <li>
+          <app-icon [name]="'clock'" />
+          <div>
+            <span class="info-label">{{ i18n.t('contact.info.hoursLabel') }}</span>
+            <span>{{ i18n.t('contactInfo.hours') }}</span>
+          </div>
+        </li>
+      </ul>
+
+      @if (socialLinks().length > 0) {
+        <h2 class="social-title">{{ i18n.t('contact.info.socialTitle') }}</h2>
+        <div class="social">
+          @for (link of socialLinks(); track link.id) {
+            <a
+              class="social-link"
+              [href]="link.url"
+              target="_blank"
+              rel="noopener"
+              [attr.aria-label]="link.label"
+            >
+              <app-icon [name]="link.icon" />
+            </a>
+          }
+        </div>
+      }
+
+      <app-company-map />
+
+      <div class="map-note" role="note">
+        <app-icon [name]="'map-pin'" />
+        <p>{{ i18n.t('contact.mapNote') }}</p>
+      </div>
+    </aside>
+  </div>
+</section>

@@ -1,0 +1,77 @@
+<footer class="footer" appReveal>
+  <div class="container">
+    <div class="grid">
+      <div class="col col--brand">
+        <a routerLink="/" class="brand" aria-label="Fluidity — Accueil">
+          <img class="brand-logo" src="brand/logo-full.png" alt="Fluidity" width="140" height="25" />
+        </a>
+        <p class="desc">{{ i18n.t('footer.description') }}</p>
+        @if (socialLinks().length > 0) {
+          <div class="social" role="list" [attr.aria-label]="i18n.t('footer.social')">
+            @for (link of socialLinks(); track link.id) {
+              <a
+                role="listitem"
+                class="social-link"
+                [href]="link.url"
+                target="_blank"
+                rel="noopener"
+                [attr.aria-label]="link.label"
+              >
+                <app-icon [name]="link.icon" />
+              </a>
+            }
+          </div>
+        }
+      </div>
+
+      <nav class="col" [attr.aria-label]="i18n.t('footer.navTitle')">
+        <h3 class="col-title">{{ i18n.t('footer.navTitle') }}</h3>
+        <ul class="col-list">
+          <li><a routerLink="/" class="f-link">{{ i18n.t('header.nav.home') }}</a></li>
+          <li><a routerLink="/a-propos" class="f-link">{{ i18n.t('header.nav.about') }}</a></li>
+          <li><a routerLink="/services" class="f-link">{{ i18n.t('header.nav.services') }}</a></li>
+          <li><a routerLink="/solutions" class="f-link">{{ i18n.t('header.nav.solutions') }}</a></li>
+          <li><a routerLink="/projets" class="f-link">{{ i18n.t('header.nav.projects') }}</a></li>
+          <li><a routerLink="/contact" class="f-link">{{ i18n.t('header.nav.contact') }}</a></li>
+        </ul>
+      </nav>
+
+      <nav class="col" [attr.aria-label]="i18n.t('footer.servicesTitle')">
+        <h3 class="col-title">{{ i18n.t('footer.servicesTitle') }}</h3>
+        <ul class="col-list">
+          @for (service of services(); track service.id) {
+            <li>
+              <a routerLink="/services" class="f-link">{{ service.title }}</a>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <div class="col col--contact">
+        <h3 class="col-title">{{ i18n.t('footer.contactTitle') }}</h3>
+        <ul class="contact-list">
+          <li>
+            <app-icon [name]="'map-pin'" />
+            <span>{{ i18n.t('contactInfo.address') }}</span>
+            </li>
+          <li>
+            <app-icon [name]="'mail'" />
+            <span>{{ i18n.t('contactInfo.email') }}</span>
+          </li>
+          <li>
+            <app-icon [name]="'phone'" />
+            <span>{{ i18n.t('contactInfo.phone') }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="legal">
+      <p class="copyright">© {{ year }} Fluidity — {{ i18n.t('footer.rights') }}</p>
+      <div class="legal-links">
+        <a routerLink="/mentions-legales" class="f-link">{{ i18n.t('footer.legal.mentions') }}</a>
+        <a routerLink="/politique-confidentialite" class="f-link">{{ i18n.t('footer.legal.privacy') }}</a>
+      </div>
+    </div>
+  </div>
+</footer>

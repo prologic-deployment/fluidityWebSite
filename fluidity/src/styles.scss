@@ -1,0 +1,56 @@
+// ============================================================================
+// FLUIDITY — Global stylesheet
+// ============================================================================
+
+@use 'styles/tokens' as *;
+@use 'styles/base';
+@use 'styles/components';
+@use 'styles/utilities';
+
+// ----------------------------------------------------------------------------
+// Theme application — semantic tokens per theme
+// ----------------------------------------------------------------------------
+:root {
+  @include theme-tokens;
+}
+
+[data-theme='dark'] {
+  @include theme-tokens-dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    @include theme-tokens-dark;
+  }
+}
+
+// Home page: the alternating bands go translucent so the FlowField canvas
+// behind them breathes through (global rule — crosses component encapsulation).
+.page-flow .section-alt {
+  background: color-mix(in srgb, var(--bg-elevated) 78%, transparent);
+}
+
+// ----------------------------------------------------------------------------
+// Motion preferences
+// ----------------------------------------------------------------------------
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Global scrollbar styling
+// ----------------------------------------------------------------------------
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}

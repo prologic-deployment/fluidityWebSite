@@ -1,0 +1,54 @@
+<div class="bar" [class.bar--solid]="scrolled() || !isHome()" [class.bar--home]="isHome() && !scrolled()">
+  <div class="bar-inner container">
+    <a routerLink="/" class="brand" aria-label="Fluidity — Accueil">
+      <img class="brand-logo" src="brand/logo-full.png" alt="Fluidity" width="140" height="25" />
+    </a>
+
+    <nav class="nav-desktop" aria-label="Navigation principale">
+      @for (item of navItems; track item.path) {
+        <a
+          routerLink="{{ item.path }}"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+          class="nav-link link-underline"
+        >{{ i18n.t(item.labelKey) }}</a>
+      }
+    </nav>
+
+    <div class="actions">
+      <app-language-selector />
+      <app-theme-toggle />
+      <a routerLink="/contact" class="btn btn-primary header-cta">{{ i18n.t('header.cta') }}</a>
+      <button
+        type="button"
+        class="menu-btn"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="menuOpen() ? i18n.t('header.menuClose') : i18n.t('header.menuOpen')"
+      >
+        <lucide-icon [img]="menuOpen() ? closeIcon : menuIcon" size="22" [attr.aria-hidden]="true" />
+      </button>
+    </div>
+  </div>
+</div>
+
+@if (menuOpen()) {
+  <div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu">
+    <nav class="mobile-nav" aria-label="Navigation principale">
+      @for (item of navItems; track item.path; let i = $index) {
+        <a
+          routerLink="{{ item.path }}"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+          class="mobile-link"
+          [style.--stagger]="i"
+          (click)="closeMenu()"
+        >{{ i18n.t(item.labelKey) }}</a>
+      }
+    </nav>
+    <div class="mobile-actions">
+      <app-language-selector />
+      <app-theme-toggle />
+    </div>
+  </div>
+}

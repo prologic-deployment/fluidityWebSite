@@ -1,0 +1,159 @@
+@use 'tokens' as *;
+
+// ============================================================================
+// Footer
+// ============================================================================
+
+.footer {
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  padding-block: $space-8 $space-6;
+  margin-top: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-7;
+}
+
+@media (min-width: 48em) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64em) {
+  .grid {
+    grid-template-columns: 1.4fr 0.8fr 1fr 1.2fr;
+    gap: $space-6;
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.brand-logo {
+  height: 2rem;
+  width: auto;
+  display: block;
+}
+
+// Official logo artwork is dark navy — recolor to white in dark mode.
+html[data-theme='dark'] .brand-logo,
+:host-context([data-theme='dark']) .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.brand-name {
+  font-family: $font-display;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-1);
+}
+
+.desc {
+  margin-block-start: $space-4;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+  max-width: 30rem;
+}
+
+.social {
+  display: flex;
+  gap: $space-2;
+  margin-block-start: $space-5;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: $radius-full;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+  transition: border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+}
+
+.col-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-block-end: $space-4;
+}
+
+.col-list,
+.contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.f-link {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.contact-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+
+  app-icon {
+    color: var(--accent);
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+  }
+}
+
+.legal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  margin-block-start: $space-8;
+  padding-block-start: $space-5;
+  border-top: 1px solid var(--border);
+}
+
+@media (min-width: 64em) {
+  .legal {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.copyright {
+  color: var(--text-3);
+  font-size: 0.85rem;
+}
+
+.legal-links {
+  display: flex;
+  gap: $space-5;
+}

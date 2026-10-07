@@ -1,0 +1,209 @@
+@use 'tokens' as *;
+
+.page-hero {
+  padding-block: 9rem 3rem;
+  background:
+    radial-gradient(50% 70% at 80% 10%, rgb(0 201 167 / 0.4), transparent 70%),
+    var(--bg);
+
+  h1 {
+    font-size: $font-size-900;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-block-start: $space-4;
+  }
+}
+
+.lede {
+  margin-block-start: $space-4;
+  font-size: $font-size-500;
+  color: var(--text-2);
+  max-width: 38rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-7;
+  align-items: start;
+}
+
+@media (min-width: 64em) {
+  .layout {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-5;
+}
+
+@media (min-width: 40em) {
+  .row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.select-wrap {
+  position: relative;
+
+  select {
+    appearance: none;
+    padding-inline-end: 2.4rem;
+    cursor: pointer;
+  }
+
+  lucide-icon {
+    position: absolute;
+    inset-inline-end: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-3);
+    pointer-events: none;
+  }
+}
+
+.submit-error {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+  border-radius: $radius-md;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: $font-size-300;
+  font-weight: 500;
+}
+
+form .btn {
+  align-self: flex-start;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// --- Success panel ------------------------------------------------------------
+.success {
+  @include card;
+  padding: $space-7 $space-6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-3;
+
+  lucide-icon {
+    color: var(--success);
+  }
+
+  h2 {
+    font-size: $font-size-700;
+  }
+
+  p {
+    color: var(--text-2);
+  }
+
+  .btn {
+    margin-block-start: $space-2;
+  }
+}
+
+// --- Info sidebar ---------------------------------------------------------------
+.info-col {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+
+  h2 {
+    font-size: $font-size-600;
+  }
+}
+
+.info-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  li {
+    display: flex;
+    gap: $space-3;
+    align-items: flex-start;
+  }
+
+  app-icon {
+    color: var(--accent);
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .info-label {
+    display: block;
+    font-size: $font-size-200;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-block-end: 0.15rem;
+  }
+
+  span {
+    color: var(--text-1);
+    font-size: $font-size-300;
+  }
+}
+
+.social {
+  display: flex;
+  gap: $space-2;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: $radius-full;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+  transition: border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+}
+
+.map-note {
+  display: flex;
+  gap: $space-3;
+  padding: $space-4;
+  border: 1px dashed var(--border-strong);
+  border-radius: $radius-md;
+  color: var(--text-3);
+  font-size: $font-size-300;
+
+  app-icon {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+}

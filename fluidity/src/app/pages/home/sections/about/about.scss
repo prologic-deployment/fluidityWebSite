@@ -1,0 +1,113 @@
+@use 'tokens' as *;
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-6;
+}
+
+@media (min-width: 64em) {
+  .split {
+    grid-template-columns: 1fr 1fr;
+    gap: $space-8;
+  }
+}
+
+.statement-title {
+  font-size: $font-size-800;
+  font-weight: 700;
+  margin-block-start: $space-4;
+  text-wrap: balance;
+}
+
+.support {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  color: var(--text-2);
+}
+
+.mv {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-3;
+  margin-block-start: $space-2;
+}
+
+@media (min-width: 40em) {
+  .mv {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.mv-card {
+  @include card;
+  padding: $space-5;
+
+  h3 {
+    font-size: $font-size-400;
+    color: var(--accent);
+    margin-block-end: $space-2;
+  }
+
+  p {
+    font-size: $font-size-300;
+    color: var(--text-2);
+  }
+}
+
+.values {
+  margin-block-start: $space-9;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+  margin-block-start: $space-6;
+}
+
+@media (min-width: 48em) {
+  .values-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64em) {
+  .values-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.value-card {
+  @include card;
+  @include hover-lift;
+  padding: $space-5;
+
+  h3 {
+    font-size: $font-size-500;
+    margin-block-start: $space-4;
+  }
+
+  p {
+    font-size: $font-size-300;
+    color: var(--text-2);
+    margin-block-start: $space-2;
+  }
+}
+
+.value-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: $radius-md;
+  background: var(--accent-soft);
+  color: var(--accent);
+
+  app-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+}
