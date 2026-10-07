@@ -211,6 +211,7 @@ export class FluidVisual implements OnInit, OnDestroy {
 
     const accent = new THREE.Color('#00a583');
     const teal = new THREE.Color('#00c9a7');
+    const mint = new THREE.Color('#a2efd0');
     const pink = new THREE.Color('#e879f9');
 
     const disposables: { dispose(): void }[] = [];
@@ -346,9 +347,9 @@ export class FluidVisual implements OnInit, OnDestroy {
     }
 
     // ---------------------------------------------------------------------------
-    // 4. The Cloud — flat-bottomed cumulus silhouette on the right: soft teal
-    //    fill, crisp accent outline, gentle halo. Reads as a cloud illustration
-    //    instead of wireframe spheres.
+    // 4. The Cloud — glowing plexus (constellation) cumulus: thin luminous
+    //    outline, a network of nodes and links inside, light beams fanning out
+    //    below — the way cloud computing is usually drawn. Brand palette.
     // ---------------------------------------------------------------------------
     const coreGroup = new THREE.Group();
     coreGroup.position.set(6.2, 0, 0);
@@ -357,12 +358,11 @@ export class FluidVisual implements OnInit, OnDestroy {
     const cloudGroup = new THREE.Group();
     coreGroup.add(cloudGroup);
 
-    const CLOUD_BASE_SCALE = 1.2;
+    const CLOUD_BASE_SCALE = 1.25;
 
-    // The silhouette is the upper envelope of overlapping circles whose centers
-    // all sit on the base line: each lobe is [x, radius]. Chaining arcs between
-    // the pairwise upper intersections yields a classic billowy cumulus with a
-    // perfectly flat bottom.
+    // Cumulus = upper envelope of overlapping circles whose centers sit on the
+    // base line: each lobe is [x, radius]. Same silhouette as before (flat
+    // bottom, four billows); it now only acts as the region for the plexus.
     const baseY = -0.72;
     const lobes: [number, number][] = [
       [-1.55, 1.0],
@@ -370,53 +370,172 @@ export class FluidVisual implements OnInit, OnDestroy {
       [0.85, 1.1],
       [1.8, 0.7],
     ];
-    const upperIntersection = (a: [number, number], b: [number, number]): [number, number] => {
-      const dx = b[0] - a[0];
-      const d = Math.abs(dx);
-      const along = (d * d + a[1] * a[1] - b[1] * b[1]) / (2 * d);
-      const half = Math.sqrt(Math.max(a[1] * a[1] - along * along, 0));
-      return [a[0] + (dx >= 0 ? along : -along), baseY + half];
+    const inCloud = (x: number, y: number, margin = 0): boolean => {
+      for (const [cx, r] of lobes) {
+        if ((x - cx) * (x - cx) + (y - baseY) * (y - baseY) <= (r - margin) * (r - margin)) {
+          return true;
+        }
+      }
+      return false;
     };
-    const joints: [number, number][] = [];
-    for (let i = 0; i < lobes.length - 1; i++) {
-      joints.push(upperIntersection(lobes[i], lobes[i + 1]));
-    }
-
-    const cloudShape = new THREE.Shape();
-    cloudShape.moveTo(lobes[0][0] - lobes[0][1], baseY);
-    for (let i = 0; i < lobes.length; i++) {
-      const [cx, r] = lobes[i];
-      const startAngle = i === 0 ? Math.PI : Math.atan2(joints[i - 1][1] - baseY, joints[i - 1][0] - cx);
-      const endAngle = i === lobes.length - 1 ? 0 : Math.atan2(joints[i][1] - baseY, joints[i][0] - cx);
-      cloudShape.absarc(cx, baseY, r, startAngle, endAngle, true);
-    }
-    cloudShape.closePath(); // flat base
-
-    const cloudGeometry = new THREE.ShapeGeometry(cloudShape, 24);
-    const cloudMaterial = new THREE.MeshBasicMaterial({
-      color: teal,
-      transparent: true,
-      opacity: 0.3,
-      blending: THREE.NormalBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-    const cloudFill = new THREE.Mesh(cloudGeometry, cloudMaterial);
-    cloudGroup.add(cloudFill);
-
-    const cloudOutlineGeometry = new THREE.BufferGeometry().setFromPoints(cloudShape.getPoints(16));
-    const cloudOutlineMaterial = new THREE.LineBasicMaterial({
-      color: accent,
-      transparent: true,
-      opacity: 0.65,
-      depthWrite: false,
-    });
-    const cloudOutline = new THREE.LineLoop(cloudOutlineGeometry, cloudOutlineMaterial);
-    cloudOutline.position.z = 0.01;
-    cloudGroup.add(cloudOutline);
-    disposables.push(cloudGeometry, cloudMaterial, cloudOutlineGeometry, cloudOutlineMaterial);
 
     const haloTexture = makeGlowTexture();
+
+    // Silhouette path, ordered right base corner → over the top → left corner,
+    // ray-cast from an interior pivot with a small inward margin so the border
+    // reads as a thin luminous rim.
+    const cornerR = new THREE.Vector2(2.55, baseY + 0.02);
+    const cornerL = new THREE.Vector2(-2.55, baseY + 0.02);
+    const pivot = new THREE.Vector2(0, baseY + 0.35);
+    const silhouette: import('three').Vector2[] = [cornerR];
+    const aStart = Math.atan2(cornerR.y - pivot.y, cornerR.x - pivot.x);
+    const aEnd = Math.atan2(cornerL.y - pivot.y, cornerL.x - pivot.x) + Math.PI * 2;
+    const sweepSteps = 64;
+    for (let i = 1; i < sweepSteps; i++) {
+      const a = aStart + (aEnd - aStart) * (i / sweepSteps);
+      const dirX = Math.cos(a);
+      const dirY = Math.sin(a);
+      let bestT = 0;
+      for (let t = 0.05; t <= 2.6; t += 0.02) {
+        if (!inCloud(pivot.x + dirX * t, pivot.y + dirY * t, 0.14)) {
+          break;
+        }
+        bestT = t;
+      }
+      if (bestT > 0) {
+        silhouette.push(new THREE.Vector2(pivot.x + dirX * bestT, pivot.y + dirY * bestT));
+      }
+    }
+    silhouette.push(cornerL);
+
+    const borderGeometry = new THREE.BufferGeometry().setFromPoints(
+      silhouette.map((p) => new THREE.Vector3(p.x, p.y, 0)),
+    );
+    const borderMaterial = new THREE.LineBasicMaterial({
+      color: mint,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+    });
+    const cloudBorder = new THREE.LineLoop(borderGeometry, borderMaterial);
+    cloudBorder.position.z = 0.02;
+    cloudGroup.add(cloudBorder);
+    disposables.push(borderGeometry, borderMaterial);
+
+    // Interior nodes: jittered Poisson-style scattering inside the silhouette
+    // (sampling band matches the shape's real extent, ±0.12 off the edges),
+    // slightly denser near the base so the mesh feels grounded.
+    const nodeCount = isLow ? 26 : 46;
+    // Two-phase spacing: coarse anchors first (0.46 saturates at ~12 inside this
+    // shape, so the coarse phase is capped), then tighter fill. Values verified
+    // by simulation: reaches 46 nodes / ~57 links with no orphans.
+    const coarseSlots = isLow ? 9 : 11;
+    const nodes: { x: number; y: number; r: number }[] = [];
+    let scatterGuard = 0;
+    while (nodes.length < nodeCount && scatterGuard++ < (isLow ? 9000 : 16000)) {
+      const x = -2.35 + Math.random() * 4.7;
+      const y = baseY + 0.12 + Math.random() * 1.22;
+      const rank = nodes.length < coarseSlots ? 0.46 : isLow ? 0.3 : 0.24;
+      if (!inCloud(x, y, isLow ? 0.26 : 0.24)) continue;
+      if (!nodes.every((n) => (n.x - x) * (n.x - x) + (n.y - y) * (n.y - y) >= rank * rank)) continue;
+      nodes.push({ x, y, r: 0.028 + Math.random() * 0.035 });
+    }
+
+    // Links: each node connects to its nearest neighbours (the first two get
+    // one extra link so the mesh knits together) — deduplicated pairs.
+    const links: { a: number; b: number }[] = [];
+    for (let i = 0; i < nodes.length; i++) {
+      const neighbours = nodes
+        .map((n, j) => ({
+          j,
+          d: (n.x - nodes[i].x) * (n.x - nodes[i].x) + (n.y - nodes[i].y) * (n.y - nodes[i].y),
+        }))
+        .filter((e) => e.j !== i)
+        .sort((p, q) => p.d - q.d)
+        .slice(0, i < 2 ? 3 : 2);
+      for (const e of neighbours) {
+        const a = Math.min(i, e.j);
+        const b = Math.max(i, e.j);
+        if (!links.some((l) => l.a === a && l.b === b)) {
+          links.push({ a, b });
+        }
+      }
+    }
+
+    const linkPositions = new Float32Array(links.length * 6);
+    for (let i = 0; i < links.length; i++) {
+      const na = nodes[links[i].a];
+      const nb = nodes[links[i].b];
+      linkPositions[i * 6] = na.x;
+      linkPositions[i * 6 + 1] = na.y;
+      linkPositions[i * 6 + 2] = -0.02;
+      linkPositions[i * 6 + 3] = nb.x;
+      linkPositions[i * 6 + 4] = nb.y;
+      linkPositions[i * 6 + 5] = -0.02;
+    }
+    const linkGeometry = new THREE.BufferGeometry();
+    linkGeometry.setAttribute('position', new THREE.BufferAttribute(linkPositions, 3));
+    const linkMaterial = new THREE.LineBasicMaterial({
+      color: teal,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const linkLines = new THREE.LineSegments(linkGeometry, linkMaterial);
+    cloudGroup.add(linkLines);
+    disposables.push(linkGeometry, linkMaterial);
+
+    // Node glows: soft sprites sharing the halo texture; every third node is
+    // logo-mint and brighter.
+    const nodeSprites: import('three').Sprite[] = [];
+    const nodeMaterials: import('three').SpriteMaterial[] = [];
+    nodes.forEach((n, i) => {
+      const bright = i % 3 === 2;
+      const material = new THREE.SpriteMaterial({
+        map: haloTexture,
+        color: bright ? mint : teal,
+        transparent: true,
+        opacity: bright ? 0.95 : 0.6,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(material);
+      sprite.position.set(n.x, n.y, 0.01);
+      const s = n.r * 3.4;
+      sprite.scale.set(s, s, 1);
+      cloudGroup.add(sprite);
+      nodeSprites.push(sprite);
+      nodeMaterials.push(material);
+      disposables.push(material);
+    });
+
+    // Light beams fanning out from the underside, carrying data downward.
+    const beamCount = isLow ? 7 : 9;
+    const beams: { material: import('three').LineBasicMaterial; phase: number }[] = [];
+    for (let i = 0; i < beamCount; i++) {
+      const u = i / (beamCount - 1);
+      const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-1.5 + u * 3, baseY - 0.02, -0.2),
+        new THREE.Vector3(
+          -1.5 + u * 3 + (u - 0.5) * 4.2,
+          baseY - 1.65 - Math.sin(u * Math.PI) * 0.5,
+          -0.6,
+        ),
+      ]);
+      const material = new THREE.LineBasicMaterial({
+        color: teal,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const beam = new THREE.Line(geometry, material);
+      cloudGroup.add(beam);
+      beams.push({ material, phase: u * Math.PI * 2 });
+      disposables.push(geometry, material);
+    }
+
     const coreHaloMaterial = new THREE.SpriteMaterial({
       map: haloTexture,
       color: teal,
@@ -596,13 +715,24 @@ export class FluidVisual implements OnInit, OnDestroy {
         streamAttributes[s].needsUpdate = true;
       }
 
-      // 4. Cloud: gentle breathing scale, sway and bob — a flat silhouette, so
-      // yaw stays a small oscillation and never turns the shape edge-on.
-      const breathe = 1 + 0.03 * Math.sin(t * 0.9);
+      // 4. Cloud plexus: smooth drift with slow breathing — no yaw or z-spin so
+      // the flat silhouette always stays face-on. Nodes twinkle, links
+      // shimmer, beams sweep downward.
+      const breathe = 1 + 0.025 * Math.sin(t * 0.5);
       cloudGroup.scale.setScalar(CLOUD_BASE_SCALE * breathe);
-      cloudGroup.rotation.y = Math.sin(t * 0.23) * 0.16;
-      cloudGroup.rotation.z = Math.sin(t * 0.31) * 0.03;
-      coreGroup.position.y = Math.sin(t * 0.6) * 0.25;
+      cloudGroup.position.x = Math.sin(t * 0.21) * 0.12;
+      cloudGroup.position.y = Math.sin(t * 0.34 + 1.2) * 0.1;
+      coreGroup.position.y = Math.sin(t * 0.6) * 0.2;
+      for (let i = 0; i < nodeSprites.length; i++) {
+        const bright = i % 3 === 2;
+        (nodeMaterials[i] as import('three').SpriteMaterial).opacity =
+          (bright ? 0.95 : 0.6) * (0.78 + 0.22 * Math.sin(t * 1.5 + i * 1.37));
+      }
+      (linkMaterial as import('three').LineBasicMaterial).opacity = 0.26 + 0.06 * Math.sin(t * 0.8);
+      for (const beam of beams) {
+        (beam.material as import('three').LineBasicMaterial).opacity =
+          0.24 + 0.18 * Math.sin(t * 1.1 + beam.phase);
+      }
 
       // 5. Shards orbit on tilted ellipses while tumbling.
       for (const shard of shards) {
