@@ -33,6 +33,7 @@ export class ContactPage {
   protected readonly submitting = signal(false);
   protected readonly succeeded = signal(false);
   protected readonly submitError = signal<string | null>(null);
+  protected readonly usedMailto = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -80,13 +81,14 @@ export class ContactPage {
     });
 
     if (result.status === 'success') {
+      this.usedMailto.set(false);
+      this.succeeded.set(true);
+    } else if (result.status === 'mailto') {
+      this.usedMailto.set(true);
       this.succeeded.set(true);
     } else {
-      this.submitError.set(
-        result.status === 'unavailable' || result.status === 'error'
-          ? this.i18n.t('contact.form.errors.submit')
-          : null,
-      );
+      this.usedMailto.set(false);
+      this.submitError.set(this.i18n.t('contact.form.errors.submit'));
     }
 
     this.submitting.set(false);
@@ -95,6 +97,7 @@ export class ContactPage {
   protected reset(): void {
     this.form.reset();
     this.succeeded.set(false);
+    this.usedMailto.set(false);
     this.submitError.set(null);
   }
 }

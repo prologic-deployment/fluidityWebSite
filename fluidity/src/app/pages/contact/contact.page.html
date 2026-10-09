@@ -12,8 +12,13 @@
       @if (succeeded()) {
         <div class="success" role="status">
           <lucide-icon [img]="sendIcon" size="30" [attr.aria-hidden]="true" />
-          <h2>{{ i18n.t('contact.form.successTitle') }}</h2>
-          <p>{{ i18n.t('contact.form.successText') }}</p>
+          @if (usedMailto()) {
+            <h2>{{ i18n.t('contact.form.mailtoTitle') }}</h2>
+            <p>{{ i18n.t('contact.form.mailtoText') }}</p>
+          } @else {
+            <h2>{{ i18n.t('contact.form.successTitle') }}</h2>
+            <p>{{ i18n.t('contact.form.successText') }}</p>
+          }
           <button type="button" class="btn btn-ghost" (click)="reset()">
             {{ i18n.t('contact.form.again') }}
           </button>
@@ -167,7 +172,7 @@
           <app-icon [name]="'mail'" />
           <div>
             <span class="info-label">{{ i18n.t('contact.info.emailLabel') }}</span>
-            <span>{{ i18n.t('contactInfo.email') }}</span>
+            <a class="info-link" [href]="'mailto:' + i18n.t('contactInfo.email')">{{ i18n.t('contactInfo.email') }}</a>
           </div>
         </li>
         <li>

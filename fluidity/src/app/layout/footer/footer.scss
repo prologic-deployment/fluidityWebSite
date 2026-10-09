@@ -139,6 +139,16 @@ html[data-theme='dark'] .brand-logo--dark,
     margin-top: 0.15rem;
     flex-shrink: 0;
   }
+
+  a {
+    color: var(--text-2);
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
 }
 
 .legal {

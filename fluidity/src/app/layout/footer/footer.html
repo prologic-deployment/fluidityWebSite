@@ -57,7 +57,7 @@
             </li>
           <li>
             <app-icon [name]="'mail'" />
-            <span>{{ i18n.t('contactInfo.email') }}</span>
+            <a [href]="'mailto:' + i18n.t('contactInfo.email')">{{ i18n.t('contactInfo.email') }}</a>
           </li>
           <li>
             <app-icon [name]="'phone'" />

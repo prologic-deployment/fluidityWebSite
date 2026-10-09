@@ -198,6 +198,9 @@
       "successTitle": "Message received!",
       "successText": "Thank you for your message. Our team will reply within 48 business hours.",
       "again": "Send another message",
+      "mailtoTitle": "Your request is ready",
+      "mailtoText": "Your mail app opened with your request pre-filled for contact@fluidity.tn. Press send and we'll reply within 48 business hours.",
+      "language": "Language",
       "errors": {
         "nameRequired": "Please enter your name.",
         "emailRequired": "Please enter your email.",
@@ -380,7 +383,7 @@
   ],
   "contactInfo": {
     "address": "9 Bis Impasse N°3, Rue 8612, ZI Charguia 1, 2035 Cité El Khadra, Tunis",
-    "email": "N/A",
+    "email": "contact@fluidity.tn",
     "phone": "71155590",
     "hours": "Mon – Fri · 08:00 – 17:30"
   },
