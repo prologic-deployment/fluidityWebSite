@@ -52,7 +52,7 @@
 // slight vertical veil on top of the canvas.
 :host-context([data-theme='light']) .hero-scrim {
   background:
-    linear-gradient(180deg, rgb(247 248 252 / 0.55), rgb(247 248 252 / 0.3) 45%, transparent),
+    linear-gradient(180deg, rgb(247 248 252 / 0.4), rgb(247 248 252 / 0.18) 45%, transparent),
     var(--hero-fade);
 }
 

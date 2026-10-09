@@ -13,12 +13,259 @@ import {
 import { isIoHealthy } from '../../directives/reveal.directive';
 
 /**
- * "The Flow Engine" — full-hero WebGL scene.
+ * "The sovereign cloud fabric" — full-bleed animated hero background.
  *
- * A metaphor for what Fluidity does: a turbulent, chaotic particle storm on
- * the left gets pulled through a pulsing gradient gate into calm laminar
- * streams that converge into a living animated cloud on the right.
+ * A cloud-service metaphor that reads as actual clouds instead of an abstract
+ * flow diagram: a constellation of glowing network clouds (soft volume, a
+ * dense mesh of connected nodes and a neon rim) floating over a fabric of
+ * servers/data points, with data streams flowing across the frame and light
+ * rays fanning out beneath each cloud.
+ *
+ * Layers
+ *  - node fabric      — glowing servers/data points spread over the viewport
+ *  - data ribbons     — flowing dashed streams crossing the whole frame
+ *  - network clouds   — one hero cloud plus distant ones, each drawn as a
+ *                       cloud silhouette filled with a connected node mesh,
+ *                       a glowing rim and data rays with travelling packets
+ *  - ambient haze     — soft blobs for depth
+ *
+ * Every layer drifts slowly and reacts to pointer parallax; the palette adapts
+ * to the active theme (`data-theme`) so light mode reads as a pale network and
+ * dark mode as a glowing one.
+ *
+ * Drawn as a single transparent 2D canvas over the CSS hero background, which
+ * keeps this cheap (no WebGL context, no library) while still animating at
+ * 60fps: links and mesh edges are batched into a handful of paths per frame,
+ * glows are two-pass circles rather than expensive canvas shadows, and the
+ * whole thing is paused off-screen. Lifecycle matches the rest of the app:
+ * lazy start via IntersectionObserver, reduced-motion / no-canvas fallback,
+ * density-driven budget and full teardown on destroy.
  */
+
+interface InfraNode {
+  x: number;
+  y: number;
+  z: number;
+  r: number;
+  tw: number;
+  ts: number;
+  c: number;
+  sx: number;
+  sy: number;
+}
+
+interface InfraRibbon {
+  yBase: number;
+  amp: number;
+  freq: number;
+  phase: number;
+  speed: number;
+  dash: [number, number];
+  width: number;
+  z: number;
+  alpha: number;
+}
+
+interface CloudBlob {
+  x: number;
+  cy: number;
+  r: number;
+}
+
+interface Cloud {
+  blobs: CloudBlob[];
+  width: number;
+  height: number;
+}
+
+interface MeshPoint {
+  x: number;
+  y: number;
+  p: number;
+}
+
+interface Mesh {
+  nodes: MeshPoint[];
+  edges: [MeshPoint, MeshPoint][];
+}
+
+interface CloudOptions {
+  cx: number;
+  cy: number;
+  w: number;
+  opacity: number;
+  depth: number;
+  bob: number;
+  seed: number;
+  targetN: number;
+}
+
+interface Palette {
+  node: [string, string, string];
+  /** "r,g,b" fragments so alpha can be composed per draw. */
+  link: string;
+  ribbon: string;
+  cloudNode: string;
+  cloudEdge: string;
+  cloudRim: string;
+  cloudFill: string;
+  haze: string;
+  ray: string;
+}
+
+const PALETTE: { dark: Palette; light: Palette } = {
+  dark: {
+    node: ['#2ed3b7', '#22d3ee', '#a2efd0'],
+    link: '46,211,183',
+    ribbon: '46,211,183',
+    cloudNode: '#9ff7e8',
+    cloudEdge: 'rgba(94,234,212,0.55)',
+    cloudRim: '#7deef9',
+    cloudFill: '34,211,238',
+    haze: '14,60,90',
+    ray: '103,232,249',
+  },
+  light: {
+    node: ['#00a583', '#0891b2', '#2ec4a6'],
+    link: '0,165,131',
+    ribbon: '0,165,131',
+    cloudNode: '#0f766e',
+    cloudEdge: 'rgba(13,148,136,0.66)',
+    cloudRim: '#0e7490',
+    cloudFill: '8,145,178',
+    haze: '168,214,230',
+    ray: '8,145,178',
+  },
+};
+
+/**
+ * Relative puff layout of the cloud silhouette: overlapping circles resting on
+ * a common baseline (y up is negative). Jittered per cloud by `makeCloud`, so
+ * every cloud in the scene has its own shape.
+ */
+const PUFFS: { x: number; r: number; cy: number }[] = [
+  { x: 0, r: 0.7, cy: -0.4 },
+  { x: 0.75, r: 1.0, cy: -0.95 },
+  { x: 1.8, r: 1.3, cy: -1.15 },
+  { x: 3.0, r: 1.05, cy: -0.9 },
+  { x: 3.9, r: 0.72, cy: -0.4 },
+];
+
+/** Deterministic PRNG so the layout is stable across rebuilds. */
+function mulberry32(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s |= 0;
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const lerp = (a: number, b: number, k: number): number => a + (b - a) * k;
+
+function makeCloud(width: number, seed: number): Cloud {
+  const rnd = mulberry32(seed * 97 + 13);
+  const puffs = PUFFS.map((p, i) => ({
+    x: p.x + (rnd() - 0.5) * 0.28 * (i === 0 || i === PUFFS.length - 1 ? 0.6 : 1),
+    r: p.r * (0.9 + rnd() * 0.24),
+    cy: p.cy * (0.88 + rnd() * 0.26),
+  }));
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let top = 0;
+  for (const p of puffs) {
+    minX = Math.min(minX, p.x - p.r);
+    maxX = Math.max(maxX, p.x + p.r);
+    top = Math.min(top, p.cy - p.r);
+  }
+  const k = width / (maxX - minX);
+  return {
+    blobs: puffs.map((p) => ({ x: (p.x - minX) * k, cy: p.cy * k, r: p.r * k })),
+    width: (maxX - minX) * k,
+    height: -top * k,
+  };
+}
+
+/** Point-in-cloud test; `yDown` is measured downward from the flat baseline. */
+function insideCloud(cloud: Cloud, x: number, yDown: number): boolean {
+  if (yDown < 0) {
+    return false;
+  }
+  for (const b of cloud.blobs) {
+    const dx = x - b.x;
+    const dy = yDown + b.cy;
+    if (dx * dx + dy * dy < b.r * b.r) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function cloudPath(ctx: CanvasRenderingContext2D, cloud: Cloud, sag: number): void {
+  const steps = 110;
+  const top = (x: number): number => {
+    let y = 0;
+    for (const b of cloud.blobs) {
+      const dx = x - b.x;
+      if (Math.abs(dx) < b.r) {
+        y = Math.min(y, b.cy - Math.sqrt(b.r * b.r - dx * dx));
+      }
+    }
+    return y;
+  };
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  for (let i = 0; i <= steps; i++) {
+    const x = lerp(0, cloud.width, i / steps);
+    ctx.lineTo(x, top(x));
+  }
+  if (sag > 0) {
+    for (let i = steps; i >= 0; i--) {
+      const x = lerp(0, cloud.width, i / steps);
+      ctx.lineTo(x, sag * Math.sin(Math.PI * (i / steps)));
+    }
+  } else {
+    ctx.lineTo(cloud.width, 0);
+    ctx.lineTo(0, 0);
+  }
+  ctx.closePath();
+}
+
+/** Sample points inside the cloud and connect each to its nearest neighbours. */
+function buildMesh(cloud: Cloud, seed: number, targetN: number): Mesh {
+  const rnd = mulberry32(seed * 31 + 5);
+  const nodes: MeshPoint[] = [];
+  let guard = 0;
+  while (nodes.length < targetN && guard++ < targetN * 120) {
+    const x = rnd() * cloud.width;
+    const yDown = rnd() * cloud.height * 1.05;
+    if (insideCloud(cloud, x, yDown)) {
+      nodes.push({ x, y: -yDown, p: rnd() * Math.PI * 2 });
+    }
+  }
+  const maxEdge = cloud.width * 0.085;
+  const edges: [MeshPoint, MeshPoint][] = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const dists: [number, number][] = [];
+    for (let j = 0; j < nodes.length; j++) {
+      if (i === j) {
+        continue;
+      }
+      dists.push([Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y), j]);
+    }
+    dists.sort((a, b) => a[0] - b[0]);
+    for (let k = 0; k < Math.min(3, dists.length); k++) {
+      const [d, j] = dists[k];
+      if (d < maxEdge && j > i) {
+        edges.push([nodes[i], nodes[j]]);
+      }
+    }
+  }
+  return { nodes, edges };
+}
+
 @Component({
   selector: 'app-fluid-visual',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -127,7 +374,7 @@ export class FluidVisual implements OnInit, OnDestroy {
       return;
     }
 
-    // Defer the heavy WebGL work until the visual is actually near the viewport.
+    // Defer the animation until the visual is actually near the viewport.
     if (typeof IntersectionObserver === 'undefined') {
       this.start(stage);
       return;
@@ -167,177 +414,45 @@ export class FluidVisual implements OnInit, OnDestroy {
 
   private start(stage: HTMLElement): void {
     this.zone.runOutsideAngular(() => {
-      void this.initScene(stage);
+      this.initScene(stage);
     });
   }
 
-  private async initScene(stage: HTMLElement): Promise<void> {
-    let THREE: typeof import('three');
-    try {
-      THREE = await import('three');
-    } catch {
+  private initScene(stage: HTMLElement): void {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
       this.fallback.set(true);
       return;
     }
+    stage.appendChild(canvas);
 
-    const width = stage.clientWidth || 1;
-    const height = stage.clientHeight || 1;
-
-    let renderer: import('three').WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
-    } catch {
-      this.fallback.set(true);
-      return;
-    }
-
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.density() === 'low' ? 1.25 : 1.5));
-    renderer.setSize(width, height);
-    stage.appendChild(renderer.domElement);
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
-    camera.position.set(-1.5, 0, 14);
-    camera.lookAt(0, 0, 0);
-
-    // --- Scene scale -----------------------------------------------------------
-    // This scene is now a calm cloud-sky background, not the pipeline diagram it
-    // used to be. Motion: slow horizontal drift, gentle camera breathing, one
-    // readable focal cloud slightly behind the copy, distant cloud silhouettes
-    // and a soft light horizon.
     const isLow = this.density() === 'low';
-    // Lower silhouette sampling on small viewports: the shapes are smaller
-    // on screen, so the curve detail would not be visible anyway.
-    const SIL_SAMPLES = isLow ? 100 : 160;
+    const maxDpr = isLow ? 1.25 : 1.5;
+    const meshScale = isLow ? 0.62 : 1;
+    const areaFactor = isLow ? 24000 : 14000;
+    const maxNodes = isLow ? 130 : 230;
 
-    const accent = new THREE.Color('#00a583');
-    const teal = new THREE.Color('#00c9a7');
-    const mint = new THREE.Color('#a2efd0');
-    const deep = new THREE.Color('#0b1020');
+    let W = 1;
+    let H = 1;
+    let linkDist = 110;
 
-    const disposables: { dispose(): void }[] = [];
+    let nodes: InfraNode[] = [];
+    let ribbons: InfraRibbon[] = [];
 
-    // Soft radial glow texture, generated once and shared by all bloom sprites.
-    const makeGlowTexture = (): import('three').CanvasTexture => {
-      const size = 128;
-      const cnv = document.createElement('canvas');
-      cnv.width = size;
-      cnv.height = size;
-      const ctx = cnv.getContext('2d')!;
-      const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-      grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-      grad.addColorStop(0.4, 'rgba(255, 255, 255, 0.28)');
-      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, size, size);
-      return new THREE.CanvasTexture(cnv);
-    };
-
-    // Build a row of overlapping billow arcs along a flat base line, wide
-    // enough to read as a band of hills and flatter than the hero cloud so
-    // the background reads as a sky, not as the centerpiece.
-    const cloudPuffs = (seed: number, width: number, height: number): { arcs: [number, number, number][]; base: number } => {
-      let s = seed;
-      const next = () => {
-        s = (s * 16807) % 2147483647;
-        return s / 2147483647;
-      };
-      const base = -height * 0.42;
-      const arcs: [number, number, number][] = [];
-      const left = -width * 0.5;
-      const right = width * 0.5;
-      let cx = left;
-      while (cx < right) {
-        const r = (0.5 + next() * 0.9) * height * 0.5;
-        arcs.push([cx, base, r]);
-        cx += r * (0.72 + next() * 0.45);
-      }
-      return { arcs, base };
-    };
-
-    // Union silhouette of the puff arcs: for every x take the tallest arc
-    // covering it, so overlapping semicircles merge into one clean closed
-    // polygon (left to right along the top, closed along the base line).
-    // Replaces the old absarc stitching, which self-intersected as soon as
-    // the arcs were not in a strict angular order.
-    const cloudSilhouette = (
-      arcs: [number, number, number][],
-      base: number,
-      margin = 0,
-      samples = 160,
-      sagFrac = 0,
-    ): import('three').Vector2[] => {
-      let left = Infinity;
-      let right = -Infinity;
-      for (const [ax, , r0] of arcs) {
-        const r = Math.max(r0 - margin, 0.01);
-        left = Math.min(left, ax - r);
-        right = Math.max(right, ax + r);
-      }
-      if (!Number.isFinite(left) || right <= left) {
-        return [];
-      }
-      const topOf = (x: number): number => {
-        let y = base;
-        for (const [ax, , r0] of arcs) {
-          const r = Math.max(r0 - margin, 0.01);
-          const dx = x - ax;
-          if (Math.abs(dx) < r) {
-            const top = base + Math.sqrt(r * r - dx * dx);
-            if (top > y) y = top;
-          }
-        }
-        return y;
-      };
-      const pts: import('three').Vector2[] = [new THREE.Vector2(left, base)];
-      let maxTop = base;
-      for (let i = 1; i < samples; i++) {
-        const x = left + ((right - left) * i) / samples;
-        const y = topOf(x);
-        if (y > maxTop) maxTop = y;
-        pts.push(new THREE.Vector2(x, y));
-      }
-      pts.push(new THREE.Vector2(right, base));
-      // Floating shapes (the focal cloud) close along a gently sagging
-      // underside instead of a flat line, so no straight base edge shows
-      // against the sky. Grounded shapes (the hills) keep the flat base.
-      if (sagFrac > 0 && maxTop > base) {
-        const sag = (maxTop - base) * sagFrac;
-        for (let i = samples - 1; i >= 1; i--) {
-          const x = left + ((right - left) * i) / samples;
-          const t = (x - left) / (right - left);
-          pts.push(new THREE.Vector2(x, base - sag * Math.sin(Math.PI * t)));
-        }
-      }
-      return pts;
-    };
-
-    function makeCloudGeometry(arcs: [number, number, number][], base: number, margin = 0.06, sagFrac = 0): import('three').BufferGeometry {
-      const pts = cloudSilhouette(arcs, base, margin, SIL_SAMPLES, sagFrac);
-      const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, p.y)));
-      return new THREE.ShapeGeometry(shape);
-    }
-
-    // The same silhouette as a line loop for the crisp rim on the near and
-    // focal clouds. Points stay local: the mesh carries position and scale,
-    // so fill and rim always line up exactly.
-    function focusOutlinePts(arcs: [number, number, number][], base: number, margin = 0.05, sagFrac = 0): import('three').BufferGeometry {
-      const g = new THREE.BufferGeometry();
-      g.setFromPoints(cloudSilhouette(arcs, base, margin, SIL_SAMPLES, sagFrac).map((p) => new THREE.Vector3(p.x, p.y, 0)));
-      return g;
-    }
-
-    // --- Pointer parallax ------------------------------------------------------
-    let pointerX = 0;
-    let pointerY = 0;
+    // --- Pointer parallax ----------------------------------------------------
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     const onPointerMove = (event: PointerEvent) => {
       const rect = stage.getBoundingClientRect();
-      pointerX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-      pointerY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+      if (rect.width === 0 || rect.height === 0) {
+        return;
+      }
+      pointer.tx = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+      pointer.ty = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
     };
     window.addEventListener('pointermove', onPointerMove, { passive: true });
 
-    // --- Pause when off-screen -------------------------------------------------
+    // --- Pause when off-screen ----------------------------------------------
     let visible = true;
     const visibilityObserver = new IntersectionObserver(
       (entries) => {
@@ -347,180 +462,298 @@ export class FluidVisual implements OnInit, OnDestroy {
     );
     visibilityObserver.observe(stage);
 
-    // --- Resize ----------------------------------------------------------------
-    let currentW = width;
-    let currentH = height;
+    const themePalette = (): Palette =>
+      document.documentElement.getAttribute('data-theme') === 'light' ? PALETTE.light : PALETTE.dark;
+
+    // --- Layout --------------------------------------------------------------
+    const build = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      W = stage.clientWidth || 1;
+      H = stage.clientHeight || 1;
+      canvas.width = Math.max(1, Math.round(W * dpr));
+      canvas.height = Math.max(1, Math.round(H * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      linkDist = Math.max(95, Math.min(W, H) * 0.105);
+
+      // Node fabric spread over the whole viewport.
+      const rnd = mulberry32(42);
+      const count = Math.min(maxNodes, Math.round((W * H) / areaFactor));
+      nodes = [];
+      for (let i = 0; i < count; i++) {
+        nodes.push({
+          x: rnd() * W,
+          y: rnd() * H,
+          z: 0.35 + rnd() * 0.65,
+          r: 1.1 + rnd() * 1.9,
+          tw: rnd() * Math.PI * 2,
+          ts: 0.4 + rnd() * 1.1,
+          c: Math.floor(rnd() * 3),
+          sx: 0,
+          sy: 0,
+        });
+      }
+
+      // Flowing dashed data ribbons.
+      ribbons = [];
+      for (let i = 0; i < 4; i++) {
+        const r2 = mulberry32(100 + i);
+        ribbons.push({
+          yBase: H * (0.16 + 0.66 * r2()),
+          amp: H * (0.05 + 0.08 * r2()),
+          freq: 1.2 + r2() * 1.4,
+          phase: r2() * Math.PI * 2,
+          speed: 16 + r2() * 34,
+          dash: [2 + r2() * 5, 9 + r2() * 14],
+          width: 0.8 + r2(),
+          z: 0.4 + r2() * 0.6,
+          alpha: 0.15 + r2() * 0.13,
+        });
+      }
+    };
+
+    build();
+
+    // --- Cloud catalogue -----------------------------------------------------
+    // Rebuilt after `build()` so sizes follow the viewport. The hero cloud
+    // sits on the open right side of the frame (the copy fades in from the
+    // left); distant clouds fill the remaining depth.
+    const cloudOptions = (): CloudOptions[] => {
+      const heroW = isLow ? Math.min(W * 0.66, H * 0.5) : Math.min(W * 0.32, H * 0.7);
+      const list: CloudOptions[] = [
+        { cx: isLow ? W * 0.6 : W * 0.69, cy: H * 0.44, w: heroW, opacity: 1, depth: 1, bob: 0, seed: 3, targetN: Math.round(110 * meshScale) },
+        { cx: W * 0.28, cy: H * 0.22, w: W * 0.15, opacity: 0.5, depth: 0.7, bob: 1.7, seed: 11, targetN: Math.round(50 * meshScale) },
+        { cx: W * 0.9, cy: H * 0.79, w: W * 0.12, opacity: 0.35, depth: 0.55, bob: 3.1, seed: 23, targetN: Math.round(40 * meshScale) },
+      ];
+      if (!isLow) {
+        list.push({ cx: W * 0.1, cy: H * 0.82, w: W * 0.1, opacity: 0.3, depth: 0.45, bob: 4.4, seed: 37, targetN: 34 });
+      }
+      return list;
+    };
+
+    let clouds: { opt: CloudOptions; cloud: Cloud; mesh: Mesh; sag: number }[] = [];
+    const rebuildClouds = () => {
+      clouds = cloudOptions().map((opt) => {
+        const cloud = makeCloud(opt.w, opt.seed);
+        return { opt, cloud, mesh: buildMesh(cloud, opt.seed, opt.targetN), sag: cloud.height * 0.14 };
+      });
+    };
+    rebuildClouds();
+
+    // --- Cloud rendering -----------------------------------------------------
+    const drawNetworkCloud = (t: number, P: Palette, isDark: boolean, entry: { opt: CloudOptions; cloud: Cloud; mesh: Mesh; sag: number }): void => {
+      const { opt, cloud, mesh, sag } = entry;
+      const x = opt.cx + Math.sin(t * 0.11 + opt.bob) * 10 + pointer.x * 22 * opt.depth;
+      const y = opt.cy + Math.sin(t * 0.14 + opt.bob * 2) * 6 + pointer.y * 14 * opt.depth;
+
+      ctx.save();
+      ctx.translate(x - cloud.width / 2, y);
+      ctx.globalAlpha = opt.opacity;
+
+      // Soft light bloom behind the cloud.
+      const R = opt.w * 1.5;
+      const hg = ctx.createRadialGradient(cloud.width / 2, -cloud.height * 0.45, 0, cloud.width / 2, -cloud.height * 0.2, R);
+      hg.addColorStop(0, `rgba(${P.cloudFill},${isDark ? 0.2 : 0.17})`);
+      hg.addColorStop(0.5, `rgba(${P.cloudFill},${isDark ? 0.06 : 0.05})`);
+      hg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = hg;
+      ctx.fillRect(cloud.width / 2 - R, -cloud.height * 0.2 - R, R * 2, R * 2);
+
+      // Data rays fanning down from the cloud base, with travelling packets.
+      const rays = 7;
+      ctx.globalAlpha = opt.opacity * (isDark ? 0.42 : 0.36);
+      for (let i = 0; i < rays; i++) {
+        const fx = cloud.width * (0.16 + 0.68 * (i / (rays - 1)));
+        const spread = (fx - cloud.width / 2) / cloud.width;
+        const len = cloud.height * (1.5 + 0.55 * Math.sin(t * 0.8 + i * 0.9));
+        const ex = fx + spread * cloud.width * 1.5;
+        const ey = len;
+        const g = ctx.createLinearGradient(fx, 0, ex, ey);
+        g.addColorStop(0, `rgba(${P.ray},0.7)`);
+        g.addColorStop(0.55, `rgba(${P.ray},0.28)`);
+        g.addColorStop(1, `rgba(${P.ray},0)`);
+        ctx.strokeStyle = g;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(fx, 0);
+        ctx.quadraticCurveTo((fx + ex) / 2, ey * 0.5, ex, ey);
+        ctx.stroke();
+
+        const p = (t * 0.28 + i * 0.13) % 1;
+        const px = lerp(fx, ex, p);
+        const py = lerp(0, ey, p) * (0.5 + 0.5 * p);
+        ctx.fillStyle = `rgba(${P.ray},${0.9 * (1 - p)})`;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Volume fill.
+      ctx.globalAlpha = opt.opacity;
+      const fg = ctx.createLinearGradient(0, -cloud.height, 0, sag);
+      fg.addColorStop(0, `rgba(${P.cloudFill},${isDark ? 0.18 : 0.14})`);
+      fg.addColorStop(1, `rgba(${P.cloudFill},${isDark ? 0.03 : 0.03})`);
+      cloudPath(ctx, cloud, sag);
+      ctx.fillStyle = fg;
+      ctx.fill();
+
+      // Connected node mesh — one path for all edges.
+      ctx.globalAlpha = opt.opacity * 0.95;
+      ctx.strokeStyle = P.cloudEdge;
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      for (const [a, b] of mesh.edges) {
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+      }
+      ctx.stroke();
+
+      // Neon rim.
+      ctx.globalAlpha = opt.opacity;
+      ctx.save();
+      ctx.shadowColor = isDark ? 'rgba(103,232,249,0.95)' : 'rgba(8,145,178,0.4)';
+      ctx.shadowBlur = 26;
+      ctx.strokeStyle = P.cloudRim;
+      ctx.lineWidth = 2.3;
+      cloudPath(ctx, cloud, sag);
+      ctx.stroke();
+      ctx.restore();
+
+      // Mesh nodes: two-pass glow (halo + core) instead of canvas shadows.
+      ctx.fillStyle = P.cloudNode;
+      for (const p of mesh.nodes) {
+        const tw = 0.5 + 0.5 * Math.sin(t * 2.2 + p.p);
+        ctx.globalAlpha = opt.opacity * 0.16 * tw;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = opt.opacity * (0.4 + 0.6 * tw);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+
+    // --- Frame ---------------------------------------------------------------
+    const startTime = performance.now();
+
+    const drawFrame = (now: number) => {
+      const t = (now - startTime) / 1000;
+      const P = themePalette();
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      pointer.x += (pointer.tx - pointer.x) * 0.04;
+      pointer.y += (pointer.ty - pointer.y) * 0.04;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.lineCap = 'round';
+
+      // Ambient haze.
+      const hazeBlobs: [number, number, number, number][] = [
+        [0.72, 0.44, 0.62, 0.6],
+        [0.2, 0.72, 0.5, 0.4],
+        [0.45, 0.32, 0.55, 0.3],
+      ];
+      for (const [hx, hy, s, a] of hazeBlobs) {
+        const g = ctx.createRadialGradient(W * hx, H * hy, 0, W * hx, H * hy, Math.max(W, H) * s * 0.55);
+        g.addColorStop(0, `rgba(${P.haze},${a * 0.5})`);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // Node fabric: resolve positions.
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        a.sx = a.x + pointer.x * 24 * a.z + Math.sin(t * 0.1 + a.x * 0.01) * 4 + Math.sin(t * 0.03) * 22 * a.z;
+        a.sy = a.y + pointer.y * 16 * a.z + Math.cos(t * 0.08 + a.y * 0.01) * 4;
+      }
+
+      // Links batched into 3 alpha buckets → 3 strokes per frame.
+      const buckets: number[][] = [[], [], []];
+      const linkLimit = linkDist * linkDist;
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          const dx = a.sx - b.sx;
+          const dy = a.sy - b.sy;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < linkLimit) {
+            const d = Math.sqrt(d2);
+            const bucket = Math.min(2, Math.floor((1 - d / linkDist) * 3));
+            buckets[bucket].push(a.sx, a.sy, b.sx, b.sy);
+          }
+        }
+      }
+      ctx.lineWidth = 0.6;
+      for (let b = 0; b < buckets.length; b++) {
+        const seg = buckets[b];
+        if (seg.length === 0) {
+          continue;
+        }
+        ctx.strokeStyle = `rgba(${P.link},${0.06 + b * 0.055})`;
+        ctx.beginPath();
+        for (let i = 0; i < seg.length; i += 4) {
+          ctx.moveTo(seg[i], seg[i + 1]);
+          ctx.lineTo(seg[i + 2], seg[i + 3]);
+        }
+        ctx.stroke();
+      }
+
+      // Node cores.
+      for (const a of nodes) {
+        const glow = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * a.ts + a.tw));
+        const col = P.node[a.c];
+        ctx.fillStyle = col;
+        ctx.globalAlpha = (isDark ? 0.16 : 0.22) * glow * a.z;
+        ctx.beginPath();
+        ctx.arc(a.sx, a.sy, a.r * 2.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = glow * a.z;
+        ctx.beginPath();
+        ctx.arc(a.sx, a.sy, a.r * a.z * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // Data ribbons.
+      for (const rb of ribbons) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(${P.ribbon},${rb.alpha})`;
+        ctx.lineWidth = rb.width;
+        ctx.setLineDash(rb.dash);
+        ctx.lineDashOffset = -t * rb.speed;
+        ctx.beginPath();
+        for (let x = -40; x <= W + 40; x += 16) {
+          const y = rb.yBase + Math.sin((x / W) * Math.PI * 2 * rb.freq + rb.phase + t * 0.15) * rb.amp + pointer.y * 12 * rb.z;
+          if (x === -40) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Clouds: distant first, hero last (on top).
+      for (let i = clouds.length - 1; i >= 0; i--) {
+        drawNetworkCloud(t, P, isDark, clouds[i]);
+      }
+    };
+
+    // --- Resize --------------------------------------------------------------
     const onResize = () => {
-      const w = stage.clientWidth || 1;
-      const h = stage.clientHeight || 1;
-      currentW = w;
-      currentH = h;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-      rebuildCloudBackground();
+      build();
+      rebuildClouds();
     };
     window.addEventListener('resize', onResize);
 
-    // --- Cloud background scene ------------------------------------------------
-    // A wide, soft background: distant cloud hills drift slowly, a focal cloud
-    // sits behind the headline, and a faint haze lights the horizon. Dark theme
-    // gets a deeper sky with a soft-horizon glow; light theme gets a paler
-    // sky with a gentle warm horizon.
-    let cloudBgGroup: import('three').Group;
-    let farLayer: import('three').Mesh;
-    let nearLayer: import('three').Mesh;
-    let focalCloud: import('three').Mesh;
-    let focalOutline: import('three').LineLoop;
-    let horizonGlow: import('three').Sprite;
-    let focalGlow: import('three').Sprite;
-    let nearOutline: import('three').LineLoop;
-    let driftT = 0;
-    // World units per design pixel, measured at the focal plane (z = -10).
-    // The camera sits at z = 14 with a 50 deg FOV, so the scene must not use
-    // raw pixel coordinates or everything falls outside the frustum.
-    let u = 1;
-
-    const rebuildCloudBackground = () => {
-      // Dispose the previous build first: resize triggers a rebuild.
-      for (const d of disposables) {
-        d.dispose();
-      }
-      disposables.length = 0;
-      if (cloudBgGroup) {
-        scene.remove(cloudBgGroup);
-      }
-      const w = currentW || 1;
-      const h = currentH || 1;
-      u = (2 * 24 * Math.tan(25 * (Math.PI / 180))) / h;
-      cloudBgGroup = new THREE.Group();
-      scene.add(cloudBgGroup);
-
-      const focal = new THREE.Color('#9fd9c4');
-      const rim = new THREE.Color('#22d3ee');
-
-      // Distant cloud hills: faint teal/cyan silhouettes, low opacity.
-      const far = cloudPuffs(7, w * 3.0, h * 0.55);
-      const farGeo = makeCloudGeometry(far.arcs, far.base, 0.18);
-      const farMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#2b6f8c'),
-        transparent: true,
-        opacity: 0.22,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        blending: THREE.NormalBlending,
-      });
-      farLayer = new THREE.Mesh(farGeo, farMat);
-      farLayer.position.set(0, 0, -18);
-      farLayer.scale.setScalar(Math.min(1, (w / 1200) * 0.55 + 0.45) * u);
-      cloudBgGroup.add(farLayer);
-      disposables.push(farGeo, farMat);
-
-      // Near clouds: soft hills rolling across the bottom of the frame.
-      const near = cloudPuffs(13, w * 3.6, h * 0.75);
-      const nearGeo = makeCloudGeometry(near.arcs, near.base, 0.08);
-      const nearMat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#3b8ba6'),
-        transparent: true,
-        opacity: 0.5,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        blending: THREE.NormalBlending,
-      });
-      nearLayer = new THREE.Mesh(nearGeo, nearMat);
-      nearLayer.position.set(0, 0, -14);
-      nearLayer.scale.setScalar(Math.min(1, (w / 1200) * 0.8 + 0.4) * u);
-      cloudBgGroup.add(nearLayer);
-      disposables.push(nearGeo, nearMat);
-
-      // Near cloud outline: crisp horizon rim; the tick loop nudges it
-      // slightly in front of the fill each frame.
-      const nearOutlineGeo = focusOutlinePts(near.arcs, near.base, 0.04);
-      const nearOutlineMat = new THREE.LineBasicMaterial({
-        color: new THREE.Color('#7fcfd6'),
-        transparent: true,
-        opacity: 0.35,
-        depthWrite: false,
-      });
-      nearOutline = new THREE.LineLoop(nearOutlineGeo, nearOutlineMat);
-      nearOutline.position.set(0, 0, -14);
-      nearOutline.scale.copy(nearLayer.scale);
-      cloudBgGroup.add(nearOutline);
-      disposables.push(nearOutlineGeo, nearOutlineMat);
-
-      // Focal cloud: the readable centerpiece, floating above the horizon on
-      // the open right side of the frame. Soft teal fill with a cyan rim;
-      // position and scale are driven per-frame by the tick loop.
-      const focalPuffs = cloudPuffs(23, w * 0.3, h * 0.46);
-      const focalGeo = makeCloudGeometry(focalPuffs.arcs, focalPuffs.base, 0.12, 0.35);
-      const focalMat = new THREE.MeshBasicMaterial({
-        color: focal,
-        transparent: true,
-        opacity: 0.45,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        blending: THREE.NormalBlending,
-      });
-      focalCloud = new THREE.Mesh(focalGeo, focalMat);
-      const rebuildDir = document.documentElement.dir === 'rtl' ? -1 : 1;
-      focalCloud.position.set(w * 0.16 * u * rebuildDir, h * 0.16 * u, -16);
-      cloudBgGroup.add(focalCloud);
-      disposables.push(focalGeo, focalMat);
-
-      const focalOutlineGeo = focusOutlinePts(focalPuffs.arcs, focalPuffs.base, 0.06, 0.35);
-      const focalOutlineMat = new THREE.LineBasicMaterial({
-        color: rim,
-        transparent: true,
-        opacity: 0.55,
-        depthWrite: false,
-      });
-      focalOutline = new THREE.LineLoop(focalOutlineGeo, focalOutlineMat);
-      focalOutline.position.copy(focalCloud.position);
-      cloudBgGroup.add(focalOutline);
-      disposables.push(focalOutlineGeo, focalOutlineMat);
-
-      // Soft halo behind the focal cloud so it reads as a source of light,
-      // echoing the glowing-cloud reference. The tick loop follows it.
-      const focalGlowTex = makeGlowTexture();
-      const focalGlowMat = new THREE.SpriteMaterial({
-        map: focalGlowTex,
-        color: new THREE.Color('#5fe0d6'),
-        transparent: true,
-        opacity: 0.3,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      });
-      focalGlow = new THREE.Sprite(focalGlowMat);
-      cloudBgGroup.add(focalGlow);
-      disposables.push(focalGlowTex, focalGlowMat);
-
-      // Horizon glow: soft light bloom across the middle band.
-      const glowTex = makeGlowTexture();
-      const glowMat = new THREE.SpriteMaterial({
-        map: glowTex,
-        color: new THREE.Color('#5fe0d6'),
-        transparent: true,
-        opacity: 0.22,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      });
-      horizonGlow = new THREE.Sprite(glowMat);
-      horizonGlow.scale.set(w * 1.9 * u, h * 0.7 * u, 1);
-      horizonGlow.position.set(0, -h * 0.08 * u, -8);
-      cloudBgGroup.add(horizonGlow);
-      disposables.push(glowTex, glowMat);
-
-      driftT = 0;
-    };
-
-    rebuildCloudBackground();
-
-    // --- Render loop -----------------------------------------------------------
+    // --- Render loop ---------------------------------------------------------
     let rafId = 0;
     let running = true;
-    const clock = new THREE.Clock();
-
-    const tick = () => {
+    const tick = (now: number) => {
       if (!running) {
         return;
       }
@@ -528,57 +761,9 @@ export class FluidVisual implements OnInit, OnDestroy {
       if (!visible) {
         return;
       }
-
-      const t = clock.getElapsedTime();
-
-      // Cloud sky tick: drift distant + near clouds, breathe the focal cloud,
-      // and keep the horizon glow soft. No pipeline-particles anywhere.
-      driftT += 0.004;
-      if (cloudBgGroup) {
-        const w = currentW || 1;
-        const h = currentH || 1;
-        // Static placement lives in these formulas (and in the initial mesh
-        // positions); the sine terms are small deltas on top, so nothing is
-        // ever applied twice. Drift spans stay narrower than the layer
-        // widths so the hills never expose an edge.
-        farLayer.position.x = ((driftT * 0.3) % (w * 0.6)) * u - w * 0.3 * u;
-        farLayer.position.y = -h * 0.34 * u + Math.sin(t * 0.05) * 0.15;
-        nearLayer.position.x = ((driftT * 0.55) % (w * 2)) * u - w * u;
-        nearLayer.position.y = -h * 0.24 * u + Math.sin(t * 0.07 + 1) * 0.2;
-        nearOutline.position.copy(nearLayer.position);
-        nearOutline.position.z += 0.15;
-
-        const breathe = 1 + 0.02 * Math.sin(t * 0.4);
-        const sF = Math.min(1, (w / 1200) * 0.9 + 0.55) * Math.min(1, w / 760);
-        // Mirror the focal cloud with the copy when the layout is RTL.
-        const dirSign = document.documentElement.dir === 'rtl' ? -1 : 1;
-        const fx = (w * 0.16 * u + Math.sin(t * 0.13) * w * 0.015 * u) * dirSign;
-        const fy = h * 0.16 * u + Math.sin(t * 0.11 + 1.3) * 0.35;
-        focalCloud.position.set(fx, fy, -16);
-        focalCloud.scale.setScalar(sF * breathe * u);
-        focalOutline.position.set(fx, fy, -15.9);
-        focalOutline.scale.setScalar(sF * breathe * u);
-        focalGlow.position.set(fx, fy - 1.2, -15.6);
-        focalGlow.scale.set((w * 0.3 + 380) * u * 1.4 * sF, h * 0.32 * u * 1.4 * sF, 1);
-        focalGlow.material.opacity = 0.3 * (0.85 + 0.15 * Math.sin(t * 0.4));
-
-        const glowPulse = 0.85 + 0.15 * Math.sin(t * 0.3);
-        if (horizonGlow.material) {
-          horizonGlow.material.opacity = 0.22 * glowPulse;
-        }
-        horizonGlow.position.y = -h * 0.08 * u + Math.sin(t * 0.06) * 0.3;
-      }
-
-      // Camera: very gentle breathing + soft parallax from pointer, never sharp.
-      const cxTarget = pointerX * 0.35 + Math.sin(t * 0.03) * 0.3;
-      const cyTarget = -pointerY * 0.25 + Math.cos(t * 0.025) * 0.2;
-      camera.position.x += (cxTarget - camera.position.x) * 0.015;
-      camera.position.y += (cyTarget - camera.position.y) * 0.015;
-      camera.lookAt(0, 0, 0);
-
-      renderer.render(scene, camera);
+      drawFrame(now);
     };
-    tick();
+    rafId = requestAnimationFrame(tick);
 
     this.cleanup = () => {
       running = false;
@@ -586,11 +771,7 @@ export class FluidVisual implements OnInit, OnDestroy {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('resize', onResize);
       visibilityObserver.disconnect();
-      for (const disposable of disposables) {
-        disposable.dispose();
-      }
-      renderer.dispose();
-      renderer.domElement.remove();
+      canvas.remove();
     };
   }
 }
