@@ -191,7 +191,7 @@ export class FluidVisual implements OnInit, OnDestroy {
       return;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.density() === 'low' ? 1.25 : 1.5));
     renderer.setSize(width, height);
     stage.appendChild(renderer.domElement);
 
@@ -201,22 +201,23 @@ export class FluidVisual implements OnInit, OnDestroy {
     camera.lookAt(0, 0, 0);
 
     // --- Scene scale -----------------------------------------------------------
+    // This scene is now a calm cloud-sky background, not the pipeline diagram it
+    // used to be. Motion: slow horizontal drift, gentle camera breathing, one
+    // readable focal cloud slightly behind the copy, distant cloud silhouettes
+    // and a soft light horizon.
     const isLow = this.density() === 'low';
-    const chaosCount = isLow ? 420 : 900;
-    const streamCount = isLow ? 4 : 6;
-    const perStream = isLow ? 70 : 120;
-    const ribbonCount = isLow ? 0 : 4;
-    const shardCount = isLow ? 14 : 24;
-    const sparkCount = isLow ? 26 : 60;
+    // Lower silhouette sampling on small viewports: the shapes are smaller
+    // on screen, so the curve detail would not be visible anyway.
+    const SIL_SAMPLES = isLow ? 100 : 160;
 
     const accent = new THREE.Color('#00a583');
     const teal = new THREE.Color('#00c9a7');
     const mint = new THREE.Color('#a2efd0');
-    const pink = new THREE.Color('#e879f9');
+    const deep = new THREE.Color('#0b1020');
 
     const disposables: { dispose(): void }[] = [];
 
-    // Soft radial glow texture, generated once and shared by halo + sparks.
+    // Soft radial glow texture, generated once and shared by all bloom sprites.
     const makeGlowTexture = (): import('three').CanvasTexture => {
       const size = 128;
       const cnv = document.createElement('canvas');
@@ -232,400 +233,98 @@ export class FluidVisual implements OnInit, OnDestroy {
       return new THREE.CanvasTexture(cnv);
     };
 
-    // ---------------------------------------------------------------------------
-    // 1. Chaos field — turbulence-driven particle storm on the left
-    // ---------------------------------------------------------------------------
-    const chaosPositions = new Float32Array(chaosCount * 3);
-    const chaosSeeds = new Float32Array(chaosCount * 4); // x, y, z, phase
-    const chaosColors = new Float32Array(chaosCount * 3);
-    for (let i = 0; i < chaosCount; i++) {
-      const sx = -11 - Math.random() * 4.5;
-      const sy = (Math.random() - 0.5) * 11;
-      const sz = (Math.random() - 0.5) * 7;
-      const ph = Math.random() * Math.PI * 2;
-      chaosSeeds[i * 4] = sx;
-      chaosSeeds[i * 4 + 1] = sy;
-      chaosSeeds[i * 4 + 2] = sz;
-      chaosSeeds[i * 4 + 3] = ph;
-
-      // Static tint: hot pink near the gate, cold indigo deep in the storm.
-      const heat = Math.min(Math.abs(sx + 4) / 6, 1);
-      chaosColors[i * 3] = pink.r + (accent.r - pink.r) * heat;
-      chaosColors[i * 3 + 1] = pink.g + (accent.g - pink.g) * heat;
-      chaosColors[i * 3 + 2] = pink.b + (accent.b - pink.b) * heat;
-    }
-    const chaosGeometry = new THREE.BufferGeometry();
-    chaosGeometry.setAttribute('position', new THREE.BufferAttribute(chaosPositions, 3));
-    chaosGeometry.setAttribute('color', new THREE.BufferAttribute(chaosColors, 3));
-    const chaosMaterial = new THREE.PointsMaterial({
-      size: isLow ? 0.06 : 0.075,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      sizeAttenuation: true,
-    });
-    scene.add(new THREE.Points(chaosGeometry, chaosMaterial));
-    disposables.push(chaosGeometry, chaosMaterial);
-
-    // ---------------------------------------------------------------------------
-    // 2. The Gate — pulsing gradient ring at x = -4
-    // ---------------------------------------------------------------------------
-    const gateGroup = new THREE.Group();
-    gateGroup.position.x = -4;
-    gateGroup.rotation.y = Math.PI / 2;
-    scene.add(gateGroup);
-
-    const gateRings: import('three').Mesh[] = [];
-    const gateRadii = [3.1, 2.7, 2.3];
-    for (let i = 0; i < gateRadii.length; i++) {
-      const geometry = new THREE.TorusGeometry(gateRadii[i], 0.016 + 0.006 * i, 8, 96);
-      const material = new THREE.MeshBasicMaterial({
-        color: i % 2 === 0 ? accent : teal,
-        transparent: true,
-        opacity: 0.55 - i * 0.12,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const ring = new THREE.Mesh(geometry, material);
-      gateGroup.add(ring);
-      gateRings.push(ring);
-      disposables.push(geometry, material);
-    }
-
-    const gateGlowGeometry = new THREE.RingGeometry(2.0, 3.3, 48);
-    const gateGlowMaterial = new THREE.MeshBasicMaterial({
-      color: accent,
-      transparent: true,
-      opacity: 0.05,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-    const gateGlow = new THREE.Mesh(gateGlowGeometry, gateGlowMaterial);
-    gateGroup.add(gateGlow);
-    disposables.push(gateGlowGeometry, gateGlowMaterial);
-
-    // ---------------------------------------------------------------------------
-    // 3. Laminar streams — calm ribbons of particles converging toward the core
-    // ---------------------------------------------------------------------------
-    const streamAttributes: import('three').BufferAttribute[] = [];
-    const streamSeeds: { offsets: Float32Array; yOff: number; zOff: number; phase: number; speed: number }[] = [];
-    for (let s = 0; s < streamCount; s++) {
-      const positions = new Float32Array(perStream * 3);
-      const offsets = new Float32Array(perStream);
-      for (let i = 0; i < perStream; i++) {
-        offsets[i] = i / perStream;
+    // Build a row of overlapping billow arcs along a flat base line, wide
+    // enough to read as a band of hills and flatter than the hero cloud so
+    // the background reads as a sky, not as the centerpiece.
+    const cloudPuffs = (seed: number, width: number, height: number): { arcs: [number, number, number][]; base: number } => {
+      let s = seed;
+      const next = () => {
+        s = (s * 16807) % 2147483647;
+        return s / 2147483647;
+      };
+      const base = -height * 0.42;
+      const arcs: [number, number, number][] = [];
+      const left = -width * 0.5;
+      const right = width * 0.5;
+      let cx = left;
+      while (cx < right) {
+        const r = (0.5 + next() * 0.9) * height * 0.5;
+        arcs.push([cx, base, r]);
+        cx += r * (0.72 + next() * 0.45);
       }
-
-      const geometry = new THREE.BufferGeometry();
-      const attribute = new THREE.BufferAttribute(positions, 3);
-      geometry.setAttribute('position', attribute);
-
-      const mix = s / Math.max(streamCount - 1, 1);
-      const material = new THREE.PointsMaterial({
-        size: isLow ? 0.05 : 0.065,
-        color: accent.clone().lerp(teal, mix),
-        transparent: true,
-        opacity: 0.7,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        sizeAttenuation: true,
-      });
-
-      scene.add(new THREE.Points(geometry, material));
-      streamAttributes.push(attribute);
-      streamSeeds.push({
-        offsets,
-        yOff: (Math.random() - 0.5) * 4.5,
-        zOff: (Math.random() - 0.5) * 2.5,
-        phase: (s / streamCount) * Math.PI * 2,
-        speed: 0.055 + Math.random() * 0.05,
-      });
-      disposables.push(geometry, material);
-    }
-
-    // ---------------------------------------------------------------------------
-    // 4. The Cloud — glowing plexus (constellation) cumulus: thin luminous
-    //    outline, a network of nodes and links inside, light beams fanning out
-    //    below — the way cloud computing is usually drawn. Brand palette.
-    // ---------------------------------------------------------------------------
-    const coreGroup = new THREE.Group();
-    coreGroup.position.set(6.2, 0, 0);
-    scene.add(coreGroup);
-
-    const cloudGroup = new THREE.Group();
-    coreGroup.add(cloudGroup);
-
-    const CLOUD_BASE_SCALE = 1.25;
-
-    // Cumulus = upper envelope of overlapping circles whose centers sit on the
-    // base line: each lobe is [x, radius]. Same silhouette as before (flat
-    // bottom, four billows); it now only acts as the region for the plexus.
-    const baseY = -0.72;
-    const lobes: [number, number][] = [
-      [-1.55, 1.0],
-      [-0.4, 1.4],
-      [0.85, 1.1],
-      [1.8, 0.7],
-    ];
-    const inCloud = (x: number, y: number, margin = 0): boolean => {
-      for (const [cx, r] of lobes) {
-        if ((x - cx) * (x - cx) + (y - baseY) * (y - baseY) <= (r - margin) * (r - margin)) {
-          return true;
-        }
-      }
-      return false;
+      return { arcs, base };
     };
 
-    const haloTexture = makeGlowTexture();
-
-    // Silhouette path, ordered right base corner → over the top → left corner,
-    // ray-cast from an interior pivot with a small inward margin so the border
-    // reads as a thin luminous rim.
-    const cornerR = new THREE.Vector2(2.55, baseY + 0.02);
-    const cornerL = new THREE.Vector2(-2.55, baseY + 0.02);
-    const pivot = new THREE.Vector2(0, baseY + 0.35);
-    const silhouette: import('three').Vector2[] = [cornerR];
-    const aStart = Math.atan2(cornerR.y - pivot.y, cornerR.x - pivot.x);
-    const aEnd = Math.atan2(cornerL.y - pivot.y, cornerL.x - pivot.x) + Math.PI * 2;
-    const sweepSteps = 64;
-    for (let i = 1; i < sweepSteps; i++) {
-      const a = aStart + (aEnd - aStart) * (i / sweepSteps);
-      const dirX = Math.cos(a);
-      const dirY = Math.sin(a);
-      let bestT = 0;
-      for (let t = 0.05; t <= 2.6; t += 0.02) {
-        if (!inCloud(pivot.x + dirX * t, pivot.y + dirY * t, 0.14)) {
-          break;
+    // Union silhouette of the puff arcs: for every x take the tallest arc
+    // covering it, so overlapping semicircles merge into one clean closed
+    // polygon (left to right along the top, closed along the base line).
+    // Replaces the old absarc stitching, which self-intersected as soon as
+    // the arcs were not in a strict angular order.
+    const cloudSilhouette = (
+      arcs: [number, number, number][],
+      base: number,
+      margin = 0,
+      samples = 160,
+      sagFrac = 0,
+    ): import('three').Vector2[] => {
+      let left = Infinity;
+      let right = -Infinity;
+      for (const [ax, , r0] of arcs) {
+        const r = Math.max(r0 - margin, 0.01);
+        left = Math.min(left, ax - r);
+        right = Math.max(right, ax + r);
+      }
+      if (!Number.isFinite(left) || right <= left) {
+        return [];
+      }
+      const topOf = (x: number): number => {
+        let y = base;
+        for (const [ax, , r0] of arcs) {
+          const r = Math.max(r0 - margin, 0.01);
+          const dx = x - ax;
+          if (Math.abs(dx) < r) {
+            const top = base + Math.sqrt(r * r - dx * dx);
+            if (top > y) y = top;
+          }
         }
-        bestT = t;
+        return y;
+      };
+      const pts: import('three').Vector2[] = [new THREE.Vector2(left, base)];
+      let maxTop = base;
+      for (let i = 1; i < samples; i++) {
+        const x = left + ((right - left) * i) / samples;
+        const y = topOf(x);
+        if (y > maxTop) maxTop = y;
+        pts.push(new THREE.Vector2(x, y));
       }
-      if (bestT > 0) {
-        silhouette.push(new THREE.Vector2(pivot.x + dirX * bestT, pivot.y + dirY * bestT));
-      }
-    }
-    silhouette.push(cornerL);
-
-    const borderGeometry = new THREE.BufferGeometry().setFromPoints(
-      silhouette.map((p) => new THREE.Vector3(p.x, p.y, 0)),
-    );
-    const borderMaterial = new THREE.LineBasicMaterial({
-      color: mint,
-      transparent: true,
-      opacity: 0.9,
-      depthWrite: false,
-    });
-    const cloudBorder = new THREE.LineLoop(borderGeometry, borderMaterial);
-    cloudBorder.position.z = 0.02;
-    cloudGroup.add(cloudBorder);
-    disposables.push(borderGeometry, borderMaterial);
-
-    // Interior nodes: jittered Poisson-style scattering inside the silhouette
-    // (sampling band matches the shape's real extent, ±0.12 off the edges),
-    // slightly denser near the base so the mesh feels grounded.
-    const nodeCount = isLow ? 26 : 46;
-    // Two-phase spacing: coarse anchors first (0.46 saturates at ~12 inside this
-    // shape, so the coarse phase is capped), then tighter fill. Values verified
-    // by simulation: reaches 46 nodes / ~57 links with no orphans.
-    const coarseSlots = isLow ? 9 : 11;
-    const nodes: { x: number; y: number; r: number }[] = [];
-    let scatterGuard = 0;
-    while (nodes.length < nodeCount && scatterGuard++ < (isLow ? 9000 : 16000)) {
-      const x = -2.35 + Math.random() * 4.7;
-      const y = baseY + 0.12 + Math.random() * 1.22;
-      const rank = nodes.length < coarseSlots ? 0.46 : isLow ? 0.3 : 0.24;
-      if (!inCloud(x, y, isLow ? 0.26 : 0.24)) continue;
-      if (!nodes.every((n) => (n.x - x) * (n.x - x) + (n.y - y) * (n.y - y) >= rank * rank)) continue;
-      nodes.push({ x, y, r: 0.028 + Math.random() * 0.035 });
-    }
-
-    // Links: each node connects to its nearest neighbours (the first two get
-    // one extra link so the mesh knits together) — deduplicated pairs.
-    const links: { a: number; b: number }[] = [];
-    for (let i = 0; i < nodes.length; i++) {
-      const neighbours = nodes
-        .map((n, j) => ({
-          j,
-          d: (n.x - nodes[i].x) * (n.x - nodes[i].x) + (n.y - nodes[i].y) * (n.y - nodes[i].y),
-        }))
-        .filter((e) => e.j !== i)
-        .sort((p, q) => p.d - q.d)
-        .slice(0, i < 2 ? 3 : 2);
-      for (const e of neighbours) {
-        const a = Math.min(i, e.j);
-        const b = Math.max(i, e.j);
-        if (!links.some((l) => l.a === a && l.b === b)) {
-          links.push({ a, b });
+      pts.push(new THREE.Vector2(right, base));
+      // Floating shapes (the focal cloud) close along a gently sagging
+      // underside instead of a flat line, so no straight base edge shows
+      // against the sky. Grounded shapes (the hills) keep the flat base.
+      if (sagFrac > 0 && maxTop > base) {
+        const sag = (maxTop - base) * sagFrac;
+        for (let i = samples - 1; i >= 1; i--) {
+          const x = left + ((right - left) * i) / samples;
+          const t = (x - left) / (right - left);
+          pts.push(new THREE.Vector2(x, base - sag * Math.sin(Math.PI * t)));
         }
       }
+      return pts;
+    };
+
+    function makeCloudGeometry(arcs: [number, number, number][], base: number, margin = 0.06, sagFrac = 0): import('three').BufferGeometry {
+      const pts = cloudSilhouette(arcs, base, margin, SIL_SAMPLES, sagFrac);
+      const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, p.y)));
+      return new THREE.ShapeGeometry(shape);
     }
 
-    const linkPositions = new Float32Array(links.length * 6);
-    for (let i = 0; i < links.length; i++) {
-      const na = nodes[links[i].a];
-      const nb = nodes[links[i].b];
-      linkPositions[i * 6] = na.x;
-      linkPositions[i * 6 + 1] = na.y;
-      linkPositions[i * 6 + 2] = -0.02;
-      linkPositions[i * 6 + 3] = nb.x;
-      linkPositions[i * 6 + 4] = nb.y;
-      linkPositions[i * 6 + 5] = -0.02;
-    }
-    const linkGeometry = new THREE.BufferGeometry();
-    linkGeometry.setAttribute('position', new THREE.BufferAttribute(linkPositions, 3));
-    const linkMaterial = new THREE.LineBasicMaterial({
-      color: teal,
-      transparent: true,
-      opacity: 0.28,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const linkLines = new THREE.LineSegments(linkGeometry, linkMaterial);
-    cloudGroup.add(linkLines);
-    disposables.push(linkGeometry, linkMaterial);
-
-    // Node glows: soft sprites sharing the halo texture; every third node is
-    // logo-mint and brighter.
-    const nodeSprites: import('three').Sprite[] = [];
-    const nodeMaterials: import('three').SpriteMaterial[] = [];
-    nodes.forEach((n, i) => {
-      const bright = i % 3 === 2;
-      const material = new THREE.SpriteMaterial({
-        map: haloTexture,
-        color: bright ? mint : teal,
-        transparent: true,
-        opacity: bright ? 0.95 : 0.6,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const sprite = new THREE.Sprite(material);
-      sprite.position.set(n.x, n.y, 0.01);
-      const s = n.r * 3.4;
-      sprite.scale.set(s, s, 1);
-      cloudGroup.add(sprite);
-      nodeSprites.push(sprite);
-      nodeMaterials.push(material);
-      disposables.push(material);
-    });
-
-    // Light beams fanning out from the underside, carrying data downward.
-    const beamCount = isLow ? 7 : 9;
-    const beams: { material: import('three').LineBasicMaterial; phase: number }[] = [];
-    for (let i = 0; i < beamCount; i++) {
-      const u = i / (beamCount - 1);
-      const geometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(-1.5 + u * 3, baseY - 0.02, -0.2),
-        new THREE.Vector3(
-          -1.5 + u * 3 + (u - 0.5) * 4.2,
-          baseY - 1.65 - Math.sin(u * Math.PI) * 0.5,
-          -0.6,
-        ),
-      ]);
-      const material = new THREE.LineBasicMaterial({
-        color: teal,
-        transparent: true,
-        opacity: 0,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const beam = new THREE.Line(geometry, material);
-      cloudGroup.add(beam);
-      beams.push({ material, phase: u * Math.PI * 2 });
-      disposables.push(geometry, material);
-    }
-
-    const coreHaloMaterial = new THREE.SpriteMaterial({
-      map: haloTexture,
-      color: teal,
-      transparent: true,
-      opacity: 0.14,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const coreHalo = new THREE.Sprite(coreHaloMaterial);
-    coreHalo.scale.set(5.2, 5.2, 1);
-    coreHalo.position.z = -0.4;
-    coreGroup.add(coreHalo);
-    disposables.push(haloTexture, coreHaloMaterial);
-
-    // ---------------------------------------------------------------------------
-    // 5. Glass shards orbiting the cloud
-    // ---------------------------------------------------------------------------
-    const shards: { mesh: import('three').Mesh; radius: number; speed: number; phase: number; tilt: number; spin: number }[] = [];
-    const blue = new THREE.Color('#2ed3b7');
-    for (let i = 0; i < shardCount; i++) {
-      const size = 0.12 + Math.random() * 0.2;
-      const geometry = new THREE.TetrahedronGeometry(size);
-      const material = new THREE.MeshBasicMaterial({
-        color: i % 3 === 0 ? teal : i % 3 === 1 ? accent : blue,
-        transparent: true,
-        opacity: 0.5 + Math.random() * 0.3,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      coreGroup.add(mesh);
-      shards.push({
-        mesh,
-        radius: 2.4 + Math.random() * 2.4,
-        speed: 0.15 + Math.random() * 0.3,
-        phase: Math.random() * Math.PI * 2,
-        tilt: (Math.random() - 0.5) * 1.6,
-        spin: 0.4 + Math.random() * 0.8,
-      });
-      disposables.push(geometry, material);
-    }
-
-    // ---------------------------------------------------------------------------
-    // 6. Ribbon lines threading from gate toward core
-    // ---------------------------------------------------------------------------
-    const ribbonLines: import('three').Line[] = [];
-    const ribbonSeeds: { yAmp: number; zAmp: number; phase: number; freq: number }[] = [];
-    for (let r = 0; r < ribbonCount; r++) {
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
-      const material = new THREE.LineBasicMaterial({
-        color: r % 2 === 0 ? 0x00a583 : 0x2ed3b7,
-        transparent: true,
-        opacity: 0.14,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const line = new THREE.Line(geometry, material);
-      scene.add(line);
-      ribbonLines.push(line);
-      ribbonSeeds.push({
-        yAmp: 0.8 + Math.random() * 2.2,
-        zAmp: 0.6 + Math.random() * 1.4,
-        phase: (r / ribbonCount) * Math.PI * 2,
-        freq: 2 + Math.random() * 2,
-      });
-      disposables.push(geometry, material);
-    }
-
-    // ---------------------------------------------------------------------------
-    // 7. Spark sprites that ignite at the gate and ride the streams
-    // ---------------------------------------------------------------------------
-    const sparkTexture = makeGlowTexture();
-    disposables.push(sparkTexture);
-    const sparks: { sprite: import('three').Sprite; offset: number; lane: number; speed: number }[] = [];
-    for (let i = 0; i < sparkCount; i++) {
-      const material = new THREE.SpriteMaterial({
-        map: sparkTexture,
-        color: i % 2 === 0 ? 0xa2efd0 : 0x2ed3b7,
-        transparent: true,
-        opacity: 0,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const sprite = new THREE.Sprite(material);
-      const scale = 0.25 + Math.random() * 0.35;
-      sprite.scale.set(scale, scale, 1);
-      scene.add(sprite);
-      sparks.push({ sprite, offset: Math.random(), lane: Math.random(), speed: 0.08 + Math.random() * 0.1 });
-      disposables.push(material);
+    // The same silhouette as a line loop for the crisp rim on the near and
+    // focal clouds. Points stay local: the mesh carries position and scale,
+    // so fill and rim always line up exactly.
+    function focusOutlinePts(arcs: [number, number, number][], base: number, margin = 0.05, sagFrac = 0): import('three').BufferGeometry {
+      const g = new THREE.BufferGeometry();
+      g.setFromPoints(cloudSilhouette(arcs, base, margin, SIL_SAMPLES, sagFrac).map((p) => new THREE.Vector3(p.x, p.y, 0)));
+      return g;
     }
 
     // --- Pointer parallax ------------------------------------------------------
@@ -649,14 +348,172 @@ export class FluidVisual implements OnInit, OnDestroy {
     visibilityObserver.observe(stage);
 
     // --- Resize ----------------------------------------------------------------
+    let currentW = width;
+    let currentH = height;
     const onResize = () => {
       const w = stage.clientWidth || 1;
       const h = stage.clientHeight || 1;
+      currentW = w;
+      currentH = h;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      rebuildCloudBackground();
     };
     window.addEventListener('resize', onResize);
+
+    // --- Cloud background scene ------------------------------------------------
+    // A wide, soft background: distant cloud hills drift slowly, a focal cloud
+    // sits behind the headline, and a faint haze lights the horizon. Dark theme
+    // gets a deeper sky with a soft-horizon glow; light theme gets a paler
+    // sky with a gentle warm horizon.
+    let cloudBgGroup: import('three').Group;
+    let farLayer: import('three').Mesh;
+    let nearLayer: import('three').Mesh;
+    let focalCloud: import('three').Mesh;
+    let focalOutline: import('three').LineLoop;
+    let horizonGlow: import('three').Sprite;
+    let focalGlow: import('three').Sprite;
+    let nearOutline: import('three').LineLoop;
+    let driftT = 0;
+    // World units per design pixel, measured at the focal plane (z = -10).
+    // The camera sits at z = 14 with a 50 deg FOV, so the scene must not use
+    // raw pixel coordinates or everything falls outside the frustum.
+    let u = 1;
+
+    const rebuildCloudBackground = () => {
+      // Dispose the previous build first: resize triggers a rebuild.
+      for (const d of disposables) {
+        d.dispose();
+      }
+      disposables.length = 0;
+      if (cloudBgGroup) {
+        scene.remove(cloudBgGroup);
+      }
+      const w = currentW || 1;
+      const h = currentH || 1;
+      u = (2 * 24 * Math.tan(25 * (Math.PI / 180))) / h;
+      cloudBgGroup = new THREE.Group();
+      scene.add(cloudBgGroup);
+
+      const focal = new THREE.Color('#9fd9c4');
+      const rim = new THREE.Color('#22d3ee');
+
+      // Distant cloud hills: faint teal/cyan silhouettes, low opacity.
+      const far = cloudPuffs(7, w * 3.0, h * 0.55);
+      const farGeo = makeCloudGeometry(far.arcs, far.base, 0.18);
+      const farMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#2b6f8c'),
+        transparent: true,
+        opacity: 0.22,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        blending: THREE.NormalBlending,
+      });
+      farLayer = new THREE.Mesh(farGeo, farMat);
+      farLayer.position.set(0, 0, -18);
+      farLayer.scale.setScalar(Math.min(1, (w / 1200) * 0.55 + 0.45) * u);
+      cloudBgGroup.add(farLayer);
+      disposables.push(farGeo, farMat);
+
+      // Near clouds: soft hills rolling across the bottom of the frame.
+      const near = cloudPuffs(13, w * 3.6, h * 0.75);
+      const nearGeo = makeCloudGeometry(near.arcs, near.base, 0.08);
+      const nearMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#3b8ba6'),
+        transparent: true,
+        opacity: 0.5,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        blending: THREE.NormalBlending,
+      });
+      nearLayer = new THREE.Mesh(nearGeo, nearMat);
+      nearLayer.position.set(0, 0, -14);
+      nearLayer.scale.setScalar(Math.min(1, (w / 1200) * 0.8 + 0.4) * u);
+      cloudBgGroup.add(nearLayer);
+      disposables.push(nearGeo, nearMat);
+
+      // Near cloud outline: crisp horizon rim; the tick loop nudges it
+      // slightly in front of the fill each frame.
+      const nearOutlineGeo = focusOutlinePts(near.arcs, near.base, 0.04);
+      const nearOutlineMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color('#7fcfd6'),
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+      });
+      nearOutline = new THREE.LineLoop(nearOutlineGeo, nearOutlineMat);
+      nearOutline.position.set(0, 0, -14);
+      nearOutline.scale.copy(nearLayer.scale);
+      cloudBgGroup.add(nearOutline);
+      disposables.push(nearOutlineGeo, nearOutlineMat);
+
+      // Focal cloud: the readable centerpiece, floating above the horizon on
+      // the open right side of the frame. Soft teal fill with a cyan rim;
+      // position and scale are driven per-frame by the tick loop.
+      const focalPuffs = cloudPuffs(23, w * 0.3, h * 0.46);
+      const focalGeo = makeCloudGeometry(focalPuffs.arcs, focalPuffs.base, 0.12, 0.35);
+      const focalMat = new THREE.MeshBasicMaterial({
+        color: focal,
+        transparent: true,
+        opacity: 0.45,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        blending: THREE.NormalBlending,
+      });
+      focalCloud = new THREE.Mesh(focalGeo, focalMat);
+      const rebuildDir = document.documentElement.dir === 'rtl' ? -1 : 1;
+      focalCloud.position.set(w * 0.16 * u * rebuildDir, h * 0.16 * u, -16);
+      cloudBgGroup.add(focalCloud);
+      disposables.push(focalGeo, focalMat);
+
+      const focalOutlineGeo = focusOutlinePts(focalPuffs.arcs, focalPuffs.base, 0.06, 0.35);
+      const focalOutlineMat = new THREE.LineBasicMaterial({
+        color: rim,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+      });
+      focalOutline = new THREE.LineLoop(focalOutlineGeo, focalOutlineMat);
+      focalOutline.position.copy(focalCloud.position);
+      cloudBgGroup.add(focalOutline);
+      disposables.push(focalOutlineGeo, focalOutlineMat);
+
+      // Soft halo behind the focal cloud so it reads as a source of light,
+      // echoing the glowing-cloud reference. The tick loop follows it.
+      const focalGlowTex = makeGlowTexture();
+      const focalGlowMat = new THREE.SpriteMaterial({
+        map: focalGlowTex,
+        color: new THREE.Color('#5fe0d6'),
+        transparent: true,
+        opacity: 0.3,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      focalGlow = new THREE.Sprite(focalGlowMat);
+      cloudBgGroup.add(focalGlow);
+      disposables.push(focalGlowTex, focalGlowMat);
+
+      // Horizon glow: soft light bloom across the middle band.
+      const glowTex = makeGlowTexture();
+      const glowMat = new THREE.SpriteMaterial({
+        map: glowTex,
+        color: new THREE.Color('#5fe0d6'),
+        transparent: true,
+        opacity: 0.22,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      horizonGlow = new THREE.Sprite(glowMat);
+      horizonGlow.scale.set(w * 1.9 * u, h * 0.7 * u, 1);
+      horizonGlow.position.set(0, -h * 0.08 * u, -8);
+      cloudBgGroup.add(horizonGlow);
+      disposables.push(glowTex, glowMat);
+
+      driftT = 0;
+    };
+
+    rebuildCloudBackground();
 
     // --- Render loop -----------------------------------------------------------
     let rafId = 0;
@@ -674,111 +531,49 @@ export class FluidVisual implements OnInit, OnDestroy {
 
       const t = clock.getElapsedTime();
 
-      // 1. Chaos storm: turbulent jitter around each seed position.
-      const cAttr = chaosGeometry.getAttribute('position') as import('three').BufferAttribute;
-      const cArr = cAttr.array as Float32Array;
-      for (let i = 0; i < chaosCount; i++) {
-        const i4 = i * 4;
-        const i3 = i * 3;
-        const ph = chaosSeeds[i4 + 3];
-        cArr[i3] = chaosSeeds[i4] + Math.sin(t * (0.6 + (ph % 1)) + ph * 3.1) * 0.9;
-        cArr[i3 + 1] = chaosSeeds[i4 + 1] + Math.cos(t * (0.5 + (ph % 0.7)) + ph * 2.3) * 0.9;
-        cArr[i3 + 2] = chaosSeeds[i4 + 2] + Math.sin(t * 0.8 + ph * 4.7) * 0.6;
-      }
-      cAttr.needsUpdate = true;
+      // Cloud sky tick: drift distant + near clouds, breathe the focal cloud,
+      // and keep the horizon glow soft. No pipeline-particles anywhere.
+      driftT += 0.004;
+      if (cloudBgGroup) {
+        const w = currentW || 1;
+        const h = currentH || 1;
+        // Static placement lives in these formulas (and in the initial mesh
+        // positions); the sine terms are small deltas on top, so nothing is
+        // ever applied twice. Drift spans stay narrower than the layer
+        // widths so the hills never expose an edge.
+        farLayer.position.x = ((driftT * 0.3) % (w * 0.6)) * u - w * 0.3 * u;
+        farLayer.position.y = -h * 0.34 * u + Math.sin(t * 0.05) * 0.15;
+        nearLayer.position.x = ((driftT * 0.55) % (w * 2)) * u - w * u;
+        nearLayer.position.y = -h * 0.24 * u + Math.sin(t * 0.07 + 1) * 0.2;
+        nearOutline.position.copy(nearLayer.position);
+        nearOutline.position.z += 0.15;
 
-      // 2. Gate: rings pulse and rotate at slightly different rates.
-      for (let i = 0; i < gateRings.length; i++) {
-        gateRings[i].rotation.z = t * (0.1 + i * 0.06) * (i % 2 === 0 ? 1 : -1);
-        (gateRings[i].material as import('three').MeshBasicMaterial).opacity =
-          (0.55 - i * 0.12) * (0.75 + 0.25 * Math.sin(t * 1.2 + i * 2.1));
-      }
-      gateGlow.rotation.z = t * 0.05;
-      (gateGlow.material as import('three').MeshBasicMaterial).opacity = 0.05 + 0.025 * Math.sin(t * 0.9);
+        const breathe = 1 + 0.02 * Math.sin(t * 0.4);
+        const sF = Math.min(1, (w / 1200) * 0.9 + 0.55) * Math.min(1, w / 760);
+        // Mirror the focal cloud with the copy when the layout is RTL.
+        const dirSign = document.documentElement.dir === 'rtl' ? -1 : 1;
+        const fx = (w * 0.16 * u + Math.sin(t * 0.13) * w * 0.015 * u) * dirSign;
+        const fy = h * 0.16 * u + Math.sin(t * 0.11 + 1.3) * 0.35;
+        focalCloud.position.set(fx, fy, -16);
+        focalCloud.scale.setScalar(sF * breathe * u);
+        focalOutline.position.set(fx, fy, -15.9);
+        focalOutline.scale.setScalar(sF * breathe * u);
+        focalGlow.position.set(fx, fy - 1.2, -15.6);
+        focalGlow.scale.set((w * 0.3 + 380) * u * 1.4 * sF, h * 0.32 * u * 1.4 * sF, 1);
+        focalGlow.material.opacity = 0.3 * (0.85 + 0.15 * Math.sin(t * 0.4));
 
-      // 3. Laminar streams: particles glide from gate to core on smooth curves.
-      for (let s = 0; s < streamAttributes.length; s++) {
-        const data = streamSeeds[s];
-        const array = streamAttributes[s].array as Float32Array;
-        for (let i = 0; i < data.offsets.length; i++) {
-          const u = (data.offsets[i] + t * data.speed) % 1;
-          const i3 = i * 3;
-          array[i3] = -4 + u * 10.2; // gate x=-4 → core x=6.2
-          array[i3 + 1] =
-            data.yOff * (1 - u) +
-            Math.sin(u * Math.PI * 2 + t * 0.7 + data.phase) * 0.5 * (1 - u) +
-            Math.sin(u * Math.PI) * 0.3;
-          array[i3 + 2] =
-            data.zOff * (1 - u) +
-            Math.cos(u * Math.PI * 1.5 + t * 0.5 + data.phase) * 0.4 * (1 - u);
+        const glowPulse = 0.85 + 0.15 * Math.sin(t * 0.3);
+        if (horizonGlow.material) {
+          horizonGlow.material.opacity = 0.22 * glowPulse;
         }
-        streamAttributes[s].needsUpdate = true;
+        horizonGlow.position.y = -h * 0.08 * u + Math.sin(t * 0.06) * 0.3;
       }
 
-      // 4. Cloud plexus: smooth drift with slow breathing — no yaw or z-spin so
-      // the flat silhouette always stays face-on. Nodes twinkle, links
-      // shimmer, beams sweep downward.
-      const breathe = 1 + 0.025 * Math.sin(t * 0.5);
-      cloudGroup.scale.setScalar(CLOUD_BASE_SCALE * breathe);
-      cloudGroup.position.x = Math.sin(t * 0.21) * 0.12;
-      cloudGroup.position.y = Math.sin(t * 0.34 + 1.2) * 0.1;
-      coreGroup.position.y = Math.sin(t * 0.6) * 0.2;
-      for (let i = 0; i < nodeSprites.length; i++) {
-        const bright = i % 3 === 2;
-        (nodeMaterials[i] as import('three').SpriteMaterial).opacity =
-          (bright ? 0.95 : 0.6) * (0.78 + 0.22 * Math.sin(t * 1.5 + i * 1.37));
-      }
-      (linkMaterial as import('three').LineBasicMaterial).opacity = 0.26 + 0.06 * Math.sin(t * 0.8);
-      for (const beam of beams) {
-        (beam.material as import('three').LineBasicMaterial).opacity =
-          0.24 + 0.18 * Math.sin(t * 1.1 + beam.phase);
-      }
-
-      // 5. Shards orbit on tilted ellipses while tumbling.
-      for (const shard of shards) {
-        const a = t * shard.speed + shard.phase;
-        shard.mesh.position.set(
-          Math.cos(a) * shard.radius,
-          Math.sin(a * 0.9 + shard.tilt) * shard.radius * 0.55,
-          Math.sin(a) * shard.radius * 0.4,
-        );
-        shard.mesh.rotation.x = t * shard.spin;
-        shard.mesh.rotation.y = t * shard.spin * 0.7;
-      }
-
-      // 6. Ribbon lines flow from gate toward core.
-      for (let r = 0; r < ribbonLines.length; r++) {
-        const data = ribbonSeeds[r];
-        const attr = ribbonLines[r].geometry.getAttribute('position') as import('three').BufferAttribute;
-        const arr = attr.array as Float32Array;
-        const count = arr.length / 3;
-        for (let i = 0; i < count; i++) {
-          const u = i / (count - 1);
-          const i3 = i * 3;
-          arr[i3] = -4 + u * 10.2;
-          arr[i3 + 1] =
-            Math.sin(u * Math.PI * data.freq + t * 0.35 + data.phase) * data.yAmp * (1 - u * 0.5) +
-            Math.sin(u * Math.PI) * 0.4;
-          arr[i3 + 2] =
-            Math.cos(u * Math.PI * data.freq * 0.5 + t * 0.3 + data.phase) * data.zAmp * (1 - u * 0.5);
-        }
-        attr.needsUpdate = true;
-      }
-
-      // 7. Sparks ignite at the gate, brighten, then fade into the core.
-      for (const spark of sparks) {
-        const u = (spark.offset + t * spark.speed) % 1;
-        spark.sprite.position.set(
-          -4 + u * 10.2,
-          Math.sin(u * Math.PI * 2 + spark.lane * Math.PI * 2) * 0.9 * (1 - u),
-          Math.cos(u * Math.PI + spark.lane * 5) * 0.8 * (1 - u),
-        );
-        (spark.sprite.material as import('three').SpriteMaterial).opacity = Math.sin(u * Math.PI) * 0.9;
-      }
-
-      // Camera: gentle breathing drift + pointer parallax.
-      camera.position.x += (-1.5 + pointerX * 0.5 + Math.sin(t * 0.05) * 0.4 - camera.position.x) * 0.02;
-      camera.position.y += (-pointerY * 0.35 + Math.cos(t * 0.04) * 0.25 - camera.position.y) * 0.02;
+      // Camera: very gentle breathing + soft parallax from pointer, never sharp.
+      const cxTarget = pointerX * 0.35 + Math.sin(t * 0.03) * 0.3;
+      const cyTarget = -pointerY * 0.25 + Math.cos(t * 0.025) * 0.2;
+      camera.position.x += (cxTarget - camera.position.x) * 0.015;
+      camera.position.y += (cyTarget - camera.position.y) * 0.015;
       camera.lookAt(0, 0, 0);
 
       renderer.render(scene, camera);
